@@ -122,7 +122,7 @@ public class MessageResult : ResultBase
     }
 
     /// <summary>
-    ///     Confirm incomming action (i.e. Button click)
+    ///     Confirm incoming action (i.e. Button click)
     /// </summary>
     /// <param name="message"></param>
     /// <param name="showAlert"></param>

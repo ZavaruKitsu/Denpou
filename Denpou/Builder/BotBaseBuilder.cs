@@ -42,7 +42,6 @@ public sealed class BotBaseBuilder
             StartFormType = _startForm
         };
 
-        bot.Sessions.Client = bot.Client;
         bot.BotCommands = _botCommands;
         bot.StateMachine = _stateMachine;
         bot.MessageLoopFactory = _messageLoopFactory;

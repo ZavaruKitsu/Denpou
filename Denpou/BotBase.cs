@@ -30,10 +30,7 @@ public sealed class BotBase
 
         BotCommands = new List<BotCommand>();
 
-        Sessions = new SessionBase
-        {
-            BotBase = this
-        };
+        Sessions = new SessionManager(this);
     }
 
     public MessageClient Client { get; init; }
@@ -41,7 +38,7 @@ public sealed class BotBase
     /// <summary>
     ///     List of all running/active sessions
     /// </summary>
-    public SessionBase Sessions { get; set; }
+    public SessionManager Sessions { get; set; }
 
     /// <summary>
     ///     Contains System commands which will be available at everytime and didn't get passed to forms, i.e. /start

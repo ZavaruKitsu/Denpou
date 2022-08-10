@@ -19,8 +19,6 @@ public class DataResult : ResultBase
         UpdateData = update;
     }
 
-    //public Telegram.Bot.Args.MessageEventArgs RawMessageData { get; set; }
-
     public UpdateResult UpdateData { get; set; }
 
 

@@ -14,48 +14,37 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Denpou;
 
 /// <summary>
-///     Base class for managing all active sessions
+///     Class for managing all active sessions
 /// </summary>
-public class SessionBase
+public sealed class SessionManager
 {
-    public SessionBase()
+    public SessionManager(BotBase botBase)
     {
+        BotBase = botBase;
         SessionList = new Dictionary<long, DeviceSession>();
     }
 
     /// <summary>
     ///     The Basic message client.
     /// </summary>
-    public MessageClient Client { get; set; }
+    public MessageClient Client => BotBase.Client;
 
     /// <summary>
     ///     A list of all active sessions.
     /// </summary>
-    public Dictionary<long, DeviceSession> SessionList { get; set; }
-
+    public Dictionary<long, DeviceSession> SessionList { get; init; }
 
     /// <summary>
     ///     Reference to the Main BotBase instance for later use.
     /// </summary>
-    public BotBase BotBase { get; set; }
-
-    /// <summary>
-    ///     Get device session from Device/ChatId
-    /// </summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
-    public DeviceSession this[long key]
-    {
-        get => SessionList[key];
-        set => SessionList[key] = value;
-    }
+    public BotBase BotBase { get; }
 
     /// <summary>
     ///     Get device session from Device/ChatId
     /// </summary>
     /// <param name="deviceId"></param>
     /// <returns></returns>
-    public DeviceSession GetSession(long deviceId)
+    public DeviceSession? GetSession(long deviceId)
     {
         var ds = SessionList.FirstOrDefault(a => a.Key == deviceId).Value ?? null;
         return ds;
@@ -79,7 +68,7 @@ public class SessionBase
 
         await start.OnOpened(EventArgs.Empty);
 
-        this[deviceId] = ds;
+        SessionList[deviceId] = ds;
         return ds;
     }
 
@@ -89,7 +78,7 @@ public class SessionBase
     /// <param name="deviceId"></param>
     public void EndSession(long deviceId)
     {
-        var d = this[deviceId];
+        var d = SessionList[deviceId];
         if (d != null) SessionList.Remove(deviceId);
     }
 

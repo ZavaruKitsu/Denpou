@@ -32,10 +32,10 @@ namespace TelegramBotBase.Tools
         {
             switch (sig)
             {
-                case CtrlType.CTRL_C_EVENT:
-                case CtrlType.CTRL_LOGOFF_EVENT:
-                case CtrlType.CTRL_SHUTDOWN_EVENT:
-                case CtrlType.CTRL_CLOSE_EVENT:
+                case CtrlType.CtrlCEvent:
+                case CtrlType.CtrlLogoffEvent:
+                case CtrlType.CtrlShutdownEvent:
+                case CtrlType.CtrlCloseEvent:
 
                     foreach (var a in Actions) a();
 
@@ -50,11 +50,11 @@ namespace TelegramBotBase.Tools
 
         private enum CtrlType
         {
-            CTRL_C_EVENT = 0,
-            CTRL_BREAK_EVENT = 1,
-            CTRL_CLOSE_EVENT = 2,
-            CTRL_LOGOFF_EVENT = 5,
-            CTRL_SHUTDOWN_EVENT = 6
+            CtrlCEvent = 0,
+            CtrlBreakEvent = 1,
+            CtrlCloseEvent = 2,
+            CtrlLogoffEvent = 5,
+            CtrlShutdownEvent = 6
         }
     }
 }

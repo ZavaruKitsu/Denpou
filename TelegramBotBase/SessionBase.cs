@@ -79,7 +79,7 @@ namespace TelegramBotBase
             start.Device = ds;
             await start.OnInit(new InitEventArgs());
 
-            await start.OnOpened(new EventArgs());
+            await start.OnOpened(EventArgs.Empty);
 
             this[deviceId] = ds;
             return ds;
@@ -219,7 +219,7 @@ namespace TelegramBotBase
                 {
                     await form.OnInit(new InitEventArgs());
 
-                    await form.OnOpened(new EventArgs());
+                    await form.OnOpened(EventArgs.Empty);
                 }
                 catch
                 {

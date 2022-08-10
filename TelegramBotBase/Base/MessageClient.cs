@@ -17,38 +17,38 @@ namespace TelegramBotBase.Base
     /// </summary>
     public class MessageClient
     {
-        private static readonly object __evOnMessageLoop = new object();
+        private static readonly object EvOnMessageLoop = new object();
 
-        private static object __evOnMessage = new object();
+        private static object _evOnMessage = new object();
 
-        private static object __evOnMessageEdit = new object();
+        private static object _evOnMessageEdit = new object();
 
-        private static object __evCallbackQuery = new object();
+        private static object _evCallbackQuery = new object();
 
-        private CancellationTokenSource __cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource;
 
 
-        public MessageClient(string APIKey)
+        public MessageClient(string apiKey)
         {
-            this.APIKey = APIKey;
-            TelegramClient = new TelegramBotClient(APIKey);
+            ApiKey = apiKey;
+            TelegramClient = new TelegramBotClient(apiKey);
 
             Prepare();
         }
 
-        public MessageClient(string APIKey, HttpClient proxy)
+        public MessageClient(string apiKey, HttpClient proxy)
         {
-            this.APIKey = APIKey;
-            TelegramClient = new TelegramBotClient(APIKey, proxy);
+            ApiKey = apiKey;
+            TelegramClient = new TelegramBotClient(apiKey, proxy);
 
 
             Prepare();
         }
 
 
-        public MessageClient(string APIKey, Uri proxyUrl, NetworkCredential credential = null)
+        public MessageClient(string apiKey, Uri proxyUrl, NetworkCredential credential = null)
         {
-            this.APIKey = APIKey;
+            ApiKey = apiKey;
 
             var proxy = new WebProxy(proxyUrl)
             {
@@ -59,7 +59,7 @@ namespace TelegramBotBase.Base
                 new HttpClientHandler { Proxy = proxy, UseProxy = true }
             );
 
-            TelegramClient = new TelegramBotClient(APIKey, httpClient);
+            TelegramClient = new TelegramBotClient(apiKey, httpClient);
 
             Prepare();
         }
@@ -67,12 +67,12 @@ namespace TelegramBotBase.Base
         /// <summary>
         ///     Initializes the client with a proxy
         /// </summary>
-        /// <param name="APIKey"></param>
+        /// <param name="apiKey"></param>
         /// <param name="proxyHost">i.e. 127.0.0.1</param>
         /// <param name="proxyPort">i.e. 10000</param>
-        public MessageClient(string APIKey, string proxyHost, int proxyPort)
+        public MessageClient(string apiKey, string proxyHost, int proxyPort)
         {
-            this.APIKey = APIKey;
+            ApiKey = apiKey;
 
             var proxy = new WebProxy(proxyHost, proxyPort);
 
@@ -80,26 +80,26 @@ namespace TelegramBotBase.Base
                 new HttpClientHandler { Proxy = proxy, UseProxy = true }
             );
 
-            TelegramClient = new TelegramBotClient(APIKey, httpClient);
+            TelegramClient = new TelegramBotClient(apiKey, httpClient);
 
             Prepare();
         }
 
 
-        public MessageClient(string APIKey, TelegramBotClient Client)
+        public MessageClient(string apiKey, TelegramBotClient client)
         {
-            this.APIKey = APIKey;
-            TelegramClient = Client;
+            ApiKey = apiKey;
+            TelegramClient = client;
 
             Prepare();
         }
 
 
-        public string APIKey { get; set; }
+        public string ApiKey { get; set; }
 
         public ITelegramBotClient TelegramClient { get; set; }
 
-        private EventHandlerList __Events { get; } = new EventHandlerList();
+        private EventHandlerList Events { get; } = new EventHandlerList();
 
 
         public void Prepare()
@@ -110,17 +110,17 @@ namespace TelegramBotBase.Base
 
         public void StartReceiving()
         {
-            __cancellationTokenSource = new CancellationTokenSource();
+            _cancellationTokenSource = new CancellationTokenSource();
 
             var receiverOptions = new ReceiverOptions();
 
             TelegramClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions,
-                __cancellationTokenSource.Token);
+                _cancellationTokenSource.Token);
         }
 
         public void StopReceiving()
         {
-            __cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Cancel();
         }
 
 
@@ -134,8 +134,8 @@ namespace TelegramBotBase.Base
         public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception,
             CancellationToken cancellationToken)
         {
-            if (exception is ApiRequestException exAPI)
-                Console.WriteLine($"Telegram API Error:\n[{exAPI.ErrorCode}]\n{exAPI.Message}");
+            if (exception is ApiRequestException exApi)
+                Console.WriteLine($"Telegram API Error:\n[{exApi.ErrorCode}]\n{exApi.Message}");
             else
                 Console.WriteLine(exception.ToString());
             return Task.CompletedTask;
@@ -166,13 +166,13 @@ namespace TelegramBotBase.Base
 
         public event Async.AsyncEventHandler<UpdateResult> MessageLoop
         {
-            add => __Events.AddHandler(__evOnMessageLoop, value);
-            remove => __Events.RemoveHandler(__evOnMessageLoop, value);
+            add => Events.AddHandler(EvOnMessageLoop, value);
+            remove => Events.RemoveHandler(EvOnMessageLoop, value);
         }
 
         public void OnMessageLoop(UpdateResult update)
         {
-            (__Events[__evOnMessageLoop] as Async.AsyncEventHandler<UpdateResult>)?.Invoke(this, update);
+            (Events[EvOnMessageLoop] as Async.AsyncEventHandler<UpdateResult>)?.Invoke(this, update);
         }
 
         #endregion

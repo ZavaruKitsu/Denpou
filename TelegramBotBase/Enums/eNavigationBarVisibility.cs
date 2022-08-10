@@ -1,20 +1,20 @@
 ﻿namespace TelegramBotBase.Enums
 {
-    public enum eNavigationBarVisibility
+    public enum ENavigationBarVisibility
     {
         /// <summary>
         ///     Shows it depending on the amount of items.
         /// </summary>
-        auto = 0,
+        Auto = 0,
 
         /// <summary>
         ///     Will not show it at any time.
         /// </summary>
-        never = 1,
+        Never = 1,
 
         /// <summary>
         ///     Will show it at any time.
         /// </summary>
-        always = 2
+        Always = 2
     }
 }

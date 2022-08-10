@@ -21,8 +21,8 @@ namespace TelegramBotBase.Form
         public AutoCleanForm()
         {
             OldMessages = new List<int>();
-            DeleteMode = eDeleteMode.OnEveryCall;
-            DeleteSide = eDeleteSide.BotOnly;
+            DeleteMode = EDeleteMode.OnEveryCall;
+            DeleteSide = EDeleteSide.BotOnly;
 
             Init += AutoCleanForm_Init;
 
@@ -31,20 +31,21 @@ namespace TelegramBotBase.Form
 
         [SaveState] public List<int> OldMessages { get; set; }
 
-        [SaveState] public eDeleteMode DeleteMode { get; set; }
+        [SaveState] public EDeleteMode DeleteMode { get; set; }
 
-        [SaveState] public eDeleteSide DeleteSide { get; set; }
+        [SaveState] public EDeleteSide DeleteSide { get; set; }
 
-        private async Task AutoCleanForm_Init(object sender, InitEventArgs e)
+        private Task AutoCleanForm_Init(object sender, InitEventArgs e)
         {
             if (Device == null)
-                return;
+                return Task.CompletedTask;
 
             Device.MessageSent += Device_MessageSent;
 
             Device.MessageReceived += Device_MessageReceived;
 
             Device.MessageDeleted += Device_MessageDeleted;
+            return Task.CompletedTask;
         }
 
         private void Device_MessageDeleted(object sender, MessageDeletedEventArgs e)
@@ -55,7 +56,7 @@ namespace TelegramBotBase.Form
 
         private void Device_MessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            if (DeleteSide == eDeleteSide.BotOnly)
+            if (DeleteSide == EDeleteSide.BotOnly)
                 return;
 
             OldMessages.Add(e.Message.MessageId);
@@ -63,7 +64,7 @@ namespace TelegramBotBase.Form
 
         private void Device_MessageSent(object sender, MessageSentEventArgs e)
         {
-            if (DeleteSide == eDeleteSide.UserOnly)
+            if (DeleteSide == EDeleteSide.UserOnly)
                 return;
 
             OldMessages.Add(e.Message.MessageId);
@@ -71,7 +72,7 @@ namespace TelegramBotBase.Form
 
         public override async Task PreLoad(MessageResult message)
         {
-            if (DeleteMode != eDeleteMode.OnEveryCall)
+            if (DeleteMode != EDeleteMode.OnEveryCall)
                 return;
 
             await MessageCleanup();
@@ -99,10 +100,10 @@ namespace TelegramBotBase.Form
         /// <summary>
         ///     Keeps the message by removing it from the list
         /// </summary>
-        /// <param name="Id"></param>
-        public void LeaveMessage(int Id)
+        /// <param name="id"></param>
+        public void LeaveMessage(int id)
         {
-            OldMessages.Remove(Id);
+            OldMessages.Remove(id);
         }
 
         /// <summary>
@@ -118,10 +119,10 @@ namespace TelegramBotBase.Form
 
         private async Task AutoCleanForm_Closed(object sender, EventArgs e)
         {
-            if (DeleteMode != eDeleteMode.OnLeavingForm)
+            if (DeleteMode != EDeleteMode.OnLeavingForm)
                 return;
 
-            MessageCleanup().Wait();
+            await MessageCleanup();
         }
 
         /// <summary>

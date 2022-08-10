@@ -5,10 +5,10 @@ namespace TelegramBotBase.Args
 {
     public class MessageSentEventArgs
     {
-        public MessageSentEventArgs(Message message, Type Origin)
+        public MessageSentEventArgs(Message message, Type origin)
         {
             Message = message;
-            this.Origin = Origin;
+            Origin = origin;
         }
 
         public int MessageId => Message.MessageId;

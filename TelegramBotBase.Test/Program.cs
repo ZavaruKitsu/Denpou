@@ -1,98 +1,97 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using TelegramBotBase.Builder;
 using TelegramBotBase.Commands;
 using TelegramBotBase.Enums;
 using TelegramBotBaseTest.Tests;
 
-namespace TelegramBotBaseTest
+namespace TelegramBotBaseTest;
+
+internal class Program
 {
-    internal class Program
+    public static async Task Main(string[] args)
     {
-        private static void Main(string[] args)
+        var apiKey = Environment.GetEnvironmentVariable("API_TOKEN") ?? throw new Exception("API_TOKEN is not set");
+
+        var bb = BotBaseBuilder
+            .Create()
+            .WithApiKey(apiKey)
+            .DefaultMessageLoop()
+            .WithStartForm<Start>()
+            .NoProxy()
+            .CustomCommands(a =>
+            {
+                a.Start("Starts the bot");
+                a.Help("Should show you some help");
+                a.Settings("Should show you some settings");
+                a.Add("form1", "Opens test form 1");
+                a.Add("form2", "Opens test form 2");
+                a.Add("params", "Returns all send parameters as a message.");
+            })
+            .NoSerialization()
+            .UseEnglish()
+            .Build();
+
+
+        bb.BotCommand += async (s, en) =>
         {
-            var apiKey = Environment.GetEnvironmentVariable("API_TOKEN") ?? throw new Exception("API_TOKEN is not set");
-
-            var bb = BotBaseBuilder
-                .Create()
-                .WithAPIKey(apiKey)
-                .DefaultMessageLoop()
-                .WithStartForm<Start>()
-                .NoProxy()
-                .CustomCommands(a =>
-                {
-                    a.Start("Starts the bot");
-                    a.Help("Should show you some help");
-                    a.Settings("Should show you some settings");
-                    a.Add("form1", "Opens test form 1");
-                    a.Add("form2", "Opens test form 2");
-                    a.Add("params", "Returns all send parameters as a message.");
-                })
-                .NoSerialization()
-                .UseEnglish()
-                .Build();
-
-
-            bb.BotCommand += async (s, en) =>
+            switch (en.Command)
             {
-                switch (en.Command)
-                {
-                    case "/start":
+                case "/start":
 
-                        var start = new Menu();
+                    var start = new Menu();
 
-                        await en.Device.ActiveForm.NavigateTo(start);
+                    await en.Device.ActiveForm.NavigateTo(start);
 
-                        break;
-                    case "/form1":
+                    break;
+                case "/form1":
 
-                        var form1 = new TestForm();
+                    var form1 = new TestForm();
 
-                        await en.Device.ActiveForm.NavigateTo(form1);
+                    await en.Device.ActiveForm.NavigateTo(form1);
 
-                        break;
+                    break;
 
-                    case "/form2":
+                case "/form2":
 
-                        var form2 = new TestForm2();
+                    var form2 = new TestForm2();
 
-                        await en.Device.ActiveForm.NavigateTo(form2);
+                    await en.Device.ActiveForm.NavigateTo(form2);
 
-                        break;
+                    break;
 
-                    case "/params":
+                case "/params":
 
-                        var m = en.Parameters.DefaultIfEmpty("").Aggregate((a, b) => a + " and " + b);
+                    var m = en.Parameters.DefaultIfEmpty("").Aggregate((a, b) => a + " and " + b);
 
-                        await en.Device.Send("Your parameters are: " + m, replyTo: en.Device.LastMessageId);
+                    await en.Device.Send("Your parameters are: " + m, replyTo: en.Device.LastMessageId);
 
-                        en.Handled = true;
+                    en.Handled = true;
 
-                        break;
-                }
-            };
+                    break;
+            }
+        };
 
-            //Update Bot commands to botfather
-            bb.UploadBotCommands().Wait();
+        await bb.UploadBotCommands();
 
-            bb.SetSetting(eSettings.LogAllMessages, true);
+        bb.SetSetting(ESettings.LogAllMessages, true);
 
-            bb.Message += (s, en) =>
-            {
-                Console.WriteLine(en.DeviceId + " " + en.Message.MessageText + " " + (en.Message.RawData ?? ""));
-            };
+        bb.Message += (s, en) =>
+        {
+            Console.WriteLine(en.DeviceId + " " + en.Message.MessageText + " " + (en.Message.RawData ?? ""));
+        };
 
-            bb.Start();
+        bb.Start();
 
 
-            Console.WriteLine("Telegram Bot started...");
+        Console.WriteLine("Telegram Bot started...");
 
-            Console.WriteLine("Press q to quit application.");
+        Console.WriteLine("Press q to quit application.");
 
 
-            Console.ReadLine();
+        Console.ReadLine();
 
-            bb.Stop();
-        }
+        bb.Stop();
     }
 }

@@ -2,55 +2,54 @@
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests.Register
+namespace TelegramBotBaseTest.Tests.Register;
+
+public class Start : AutoCleanForm
 {
-    public class Start : AutoCleanForm
+    public override async Task Action(MessageResult message)
     {
-        public override async Task Action(MessageResult message)
+        var call = message.GetData<CallbackData>();
+
+        await message.ConfirmAction();
+
+
+        if (call == null)
+            return;
+
+        switch (call.Value)
         {
-            var call = message.GetData<CallbackData>();
+            case "form":
 
-            await message.ConfirmAction();
+                var form = new PerForm();
 
+                await NavigateTo(form);
 
-            if (call == null)
-                return;
+                break;
+            case "step":
 
-            switch (call.Value)
-            {
-                case "form":
+                var step = new PerStep();
 
-                    var form = new PerForm();
+                await NavigateTo(step);
 
-                    await NavigateTo(form);
+                break;
+            case "backtodashboard":
 
-                    break;
-                case "step":
+                var start = new Menu();
 
-                    var step = new PerStep();
+                await NavigateTo(start);
 
-                    await NavigateTo(step);
-
-                    break;
-                case "backtodashboard":
-
-                    var start = new Menu();
-
-                    await NavigateTo(start);
-
-                    break;
-            }
+                break;
         }
+    }
 
-        public override async Task Render(MessageResult message)
-        {
-            var btn = new ButtonForm();
+    public override async Task Render(MessageResult message)
+    {
+        var btn = new ButtonForm();
 
-            btn.AddButtonRow(new ButtonBase("#4.1 Per Form", new CallbackData("a", "form").Serialize()));
-            btn.AddButtonRow(new ButtonBase("#4.2 Per Step", new CallbackData("a", "step").Serialize()));
-            btn.AddButtonRow(new ButtonBase("Back", new CallbackData("a", "backtodashboard").Serialize()));
+        btn.AddButtonRow(new ButtonBase("#4.1 Per Form", new CallbackData("a", "form").Serialize()));
+        btn.AddButtonRow(new ButtonBase("#4.2 Per Step", new CallbackData("a", "step").Serialize()));
+        btn.AddButtonRow(new ButtonBase("Back", new CallbackData("a", "backtodashboard").Serialize()));
 
-            await Device.Send("Choose your test:", btn);
-        }
+        await Device.Send("Choose your test:", btn);
     }
 }

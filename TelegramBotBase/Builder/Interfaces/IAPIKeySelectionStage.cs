@@ -4,14 +4,14 @@ using TelegramBotBase.Interfaces;
 
 namespace TelegramBotBase.Builder.Interfaces
 {
-    public interface IAPIKeySelectionStage
+    public interface IApiKeySelectionStage
     {
         /// <summary>
         ///     Sets the API Key which will be used by the telegram bot client.
         /// </summary>
         /// <param name="apiKey"></param>
         /// <returns></returns>
-        IMessageLoopSelectionStage WithAPIKey(string apiKey);
+        IMessageLoopSelectionStage WithApiKey(string apiKey);
 
 
         /// <summary>
@@ -19,9 +19,9 @@ namespace TelegramBotBase.Builder.Interfaces
         ///     Uses: DefaultMessageLoop, NoProxy, OnlyStart, NoSerialization, DefaultLanguage
         /// </summary>
         /// <param name="apiKey"></param>
-        /// <param name="StartForm"></param>
+        /// <param name="startForm"></param>
         /// <returns></returns>
-        IBuildingStage QuickStart(string apiKey, Type StartForm);
+        IBuildingStage QuickStart(string apiKey, Type startForm);
 
         /// <summary>
         ///     Quick and easy way to create a BotBase instance.
@@ -36,8 +36,8 @@ namespace TelegramBotBase.Builder.Interfaces
         ///     Uses: DefaultMessageLoop, NoProxy, OnlyStart, NoSerialization, DefaultLanguage
         /// </summary>
         /// <param name="apiKey"></param>
-        /// <param name="StartFormFactory"></param>
+        /// <param name="startFormFactory"></param>
         /// <returns></returns>
-        IBuildingStage QuickStart(string apiKey, IStartFormFactory StartFormFactory);
+        IBuildingStage QuickStart(string apiKey, IStartFormFactory startFormFactory);
     }
 }

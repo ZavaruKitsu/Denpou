@@ -31,9 +31,9 @@ namespace TelegramBotBase.Builder.Interfaces
         ///     Sets the custom proxy host and port.
         /// </summary>
         /// <param name="proxyHost"></param>
-        /// <param name="Port"></param>
+        /// <param name="port"></param>
         /// <returns></returns>
-        IBotCommandsStage WithHostAndPort(string proxyHost, int Port);
+        IBotCommandsStage WithHostAndPort(string proxyHost, int port);
 
         /// <summary>
         ///     Uses a custom http client.

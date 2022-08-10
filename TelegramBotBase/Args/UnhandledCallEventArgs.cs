@@ -11,15 +11,15 @@ namespace TelegramBotBase.Args
             Handled = false;
         }
 
-        public UnhandledCallEventArgs(string Command, string RawData, long DeviceId, int MessageId, Message message,
-            DeviceSession Device) : this()
+        public UnhandledCallEventArgs(string command, string rawData, long deviceId, int messageId, Message message,
+            DeviceSession device) : this()
         {
-            this.Command = Command;
-            this.RawData = RawData;
-            this.DeviceId = DeviceId;
-            this.MessageId = MessageId;
+            Command = command;
+            RawData = rawData;
+            DeviceId = deviceId;
+            MessageId = messageId;
             Message = message;
-            this.Device = Device;
+            Device = device;
         }
 
         public string Command { get; set; }

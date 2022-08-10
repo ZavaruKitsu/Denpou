@@ -12,11 +12,11 @@ namespace TelegramBotBase.Factories.MessageLoops
 {
     public class FormBaseMessageLoop : IMessageLoopFactory
     {
-        private static readonly object __evUnhandledCall = new object();
+        private static readonly object EvUnhandledCall = new object();
 
-        private readonly EventHandlerList __Events = new EventHandlerList();
+        private readonly EventHandlerList _events = new EventHandlerList();
 
-        public async Task MessageLoop(BotBase Bot, DeviceSession session, UpdateResult ur, MessageResult mr)
+        public async Task MessageLoop(BotBase bot, DeviceSession session, UpdateResult ur, MessageResult mr)
         {
             var update = ur.RawData;
 
@@ -28,11 +28,11 @@ namespace TelegramBotBase.Factories.MessageLoops
 
             //Is this a bot command ?
             if (mr.IsFirstHandler && mr.IsBotCommand &&
-                Bot.BotCommands.Count(a => "/" + a.Command == mr.BotCommand) > 0)
+                bot.BotCommands.Count(a => "/" + a.Command == mr.BotCommand) > 0)
             {
                 var sce = new BotCommandEventArgs(mr.BotCommand, mr.BotCommandParameters, mr.Message, session.DeviceId,
                     session);
-                await Bot.OnBotCommand(sce);
+                await bot.OnBotCommand(sce);
 
                 if (sce.Handled)
                     return;
@@ -99,13 +99,13 @@ namespace TelegramBotBase.Factories.MessageLoops
         /// </summary>
         public event EventHandler<UnhandledCallEventArgs> UnhandledCall
         {
-            add => __Events.AddHandler(__evUnhandledCall, value);
-            remove => __Events.RemoveHandler(__evUnhandledCall, value);
+            add => _events.AddHandler(EvUnhandledCall, value);
+            remove => _events.RemoveHandler(EvUnhandledCall, value);
         }
 
         public void OnUnhandledCall(UnhandledCallEventArgs e)
         {
-            (__Events[__evUnhandledCall] as EventHandler<UnhandledCallEventArgs>)?.Invoke(this, e);
+            (_events[EvUnhandledCall] as EventHandler<UnhandledCallEventArgs>)?.Invoke(this, e);
         }
     }
 }

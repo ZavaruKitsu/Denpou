@@ -2,43 +2,41 @@
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests.Register.Steps
+namespace TelegramBotBaseTest.Tests.Register.Steps;
+
+public class Step2 : AutoCleanForm
 {
-    public class Step2 : AutoCleanForm
+    public Data UserData { get; set; }
+
+
+    public override Task Load(MessageResult message)
     {
-        public Data UserData { get; set; }
+        if (message.Handled)
+            return Task.CompletedTask;
+
+        if (message.MessageText.Trim() == "")
+            return Task.CompletedTask;
+
+        if (UserData.Lastname == null) UserData.Lastname = message.MessageText;
+
+        return Task.CompletedTask;
+    }
 
 
-        public override async Task Load(MessageResult message)
+    public override async Task Render(MessageResult message)
+    {
+        if (UserData.Lastname == null)
         {
-            if (message.Handled)
-                return;
-
-            if (message.MessageText.Trim() == "")
-                return;
-
-            if (UserData.Lastname == null)
-            {
-                UserData.Lastname = message.MessageText;
-            }
+            await Device.Send("Please sent your lastname:");
+            return;
         }
 
+        message.Handled = true;
 
-        public override async Task Render(MessageResult message)
-        {
-            if (UserData.Lastname == null)
-            {
-                await Device.Send("Please sent your lastname:");
-                return;
-            }
+        var step3 = new Step3();
 
-            message.Handled = true;
+        step3.UserData = UserData;
 
-            var step3 = new Step3();
-
-            step3.UserData = UserData;
-
-            await NavigateTo(step3);
-        }
+        await NavigateTo(step3);
     }
 }

@@ -17,7 +17,7 @@ namespace TelegramBotBase.Form
         {
             await CloseControls();
 
-            await OnClosed(new EventArgs());
+            await OnClosed(EventArgs.Empty);
 
 
             await ParentForm?.ReturnFromModal(this);

@@ -4,28 +4,28 @@ namespace TelegramBotBase.Form
 {
     public class DynamicButton : ButtonBase
     {
-        private readonly Func<string> GetText;
+        private readonly Func<string> _getText;
 
-        private string m_text = "";
+        private string _mText = "";
 
-        public DynamicButton(string Text, string Value, string Url = null)
+        public DynamicButton(string text, string value, string url = null)
         {
-            this.Text = Text;
-            this.Value = Value;
-            this.Url = Url;
+            Text = text;
+            Value = value;
+            Url = url;
         }
 
-        public DynamicButton(Func<string> GetText, string Value, string Url = null)
+        public DynamicButton(Func<string> getText, string value, string url = null)
         {
-            this.GetText = GetText;
-            this.Value = Value;
-            this.Url = Url;
+            _getText = getText;
+            Value = value;
+            Url = url;
         }
 
         public override string Text
         {
-            get => GetText?.Invoke() ?? m_text;
-            set => m_text = value;
+            get => _getText?.Invoke() ?? _mText;
+            set => _mText = value;
         }
     }
 }

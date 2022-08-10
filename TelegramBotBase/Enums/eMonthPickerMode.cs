@@ -1,20 +1,20 @@
 ﻿namespace TelegramBotBase.Enums
 {
-    public enum eMonthPickerMode
+    public enum EMonthPickerMode
     {
         /// <summary>
         ///     Shows the calendar with day picker mode
         /// </summary>
-        day = 0,
+        Day = 0,
 
         /// <summary>
         ///     Shows the calendar with month overview
         /// </summary>
-        month = 1,
+        Month = 1,
 
         /// <summary>
         ///     Shows the calendar with year overview
         /// </summary>
-        year = 2
+        Year = 2
     }
 }

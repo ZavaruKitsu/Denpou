@@ -4,61 +4,60 @@ using TelegramBotBase.Base;
 using TelegramBotBase.Enums;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests
+namespace TelegramBotBaseTest.Tests;
+
+public class SimpleForm : AutoCleanForm
 {
-    public class SimpleForm : AutoCleanForm
+    public SimpleForm()
     {
-        public SimpleForm()
+        DeleteSide = EDeleteSide.Both;
+        DeleteMode = EDeleteMode.OnLeavingForm;
+
+        Opened += SimpleForm_Opened;
+    }
+
+    private async Task SimpleForm_Opened(object sender, EventArgs e)
+    {
+        await Device.Send(
+            "Hello world! (send 'back' to get back to Start)\r\nOr\r\nhi, hello, maybe, bye and ciao");
+    }
+
+    public override async Task Load(MessageResult message)
+    {
+        //message.MessageText will work also, cause it is a string you could manage a lot different scenerios here
+
+        var messageId = message.MessageId;
+
+        switch (message.Command)
         {
-            DeleteSide = eDeleteSide.Both;
-            DeleteMode = eDeleteMode.OnLeavingForm;
+            case "hello":
+            case "hi":
 
-            Opened += SimpleForm_Opened;
-        }
+                //Send him a simple message
+                await Device.Send("Hello you there !");
+                break;
 
-        private async Task SimpleForm_Opened(object sender, EventArgs e)
-        {
-            await Device.Send(
-                "Hello world! (send 'back' to get back to Start)\r\nOr\r\nhi, hello, maybe, bye and ciao");
-        }
+            case "maybe":
 
-        public override async Task Load(MessageResult message)
-        {
-            //message.MessageText will work also, cause it is a string you could manage a lot different scenerios here
+                //Send him a simple message and reply to the one of himself
+                await Device.Send("Maybe what?", replyTo: messageId);
 
-            var messageId = message.MessageId;
+                break;
 
-            switch (message.Command)
-            {
-                case "hello":
-                case "hi":
+            case "bye":
+            case "ciao":
 
-                    //Send him a simple message
-                    await Device.Send("Hello you there !");
-                    break;
+                //Send him a simple message
+                await Device.Send("Ok, take care !");
+                break;
 
-                case "maybe":
+            case "back":
 
-                    //Send him a simple message and reply to the one of himself
-                    await Device.Send("Maybe what?", replyTo: messageId);
+                var st = new Menu();
 
-                    break;
+                await NavigateTo(st);
 
-                case "bye":
-                case "ciao":
-
-                    //Send him a simple message
-                    await Device.Send("Ok, take care !");
-                    break;
-
-                case "back":
-
-                    var st = new Menu();
-
-                    await NavigateTo(st);
-
-                    break;
-            }
+                break;
         }
     }
 }

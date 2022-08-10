@@ -5,18 +5,18 @@ namespace TelegramBotBase.Controls.Inline
 {
     public class TreeViewNode
     {
-        public TreeViewNode(string Text, string Value)
+        public TreeViewNode(string text, string value)
         {
-            this.Text = Text;
-            this.Value = Value;
+            Text = text;
+            Value = value;
         }
 
-        public TreeViewNode(string Text, string Value, string Url) : this(Text, Value)
+        public TreeViewNode(string text, string value, string url) : this(text, value)
         {
-            this.Url = Url;
+            Url = url;
         }
 
-        public TreeViewNode(string Text, string Value, params TreeViewNode[] childnodes) : this(Text, Value)
+        public TreeViewNode(string text, string value, params TreeViewNode[] childnodes) : this(text, value)
         {
             foreach (var c in childnodes) AddNode(c);
         }
@@ -38,9 +38,9 @@ namespace TelegramBotBase.Controls.Inline
             ChildNodes.Add(node);
         }
 
-        public TreeViewNode FindNodeByValue(string Value)
+        public TreeViewNode FindNodeByValue(string value)
         {
-            return ChildNodes.FirstOrDefault(a => a.Value == Value);
+            return ChildNodes.FirstOrDefault(a => a.Value == value);
         }
 
         public string GetPath()

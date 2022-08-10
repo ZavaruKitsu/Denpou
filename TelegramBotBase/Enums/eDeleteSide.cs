@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotBase.Enums
 {
-    public enum eDeleteSide
+    public enum EDeleteSide
     {
         /// <summary>
         ///     Delete only messages from this bot.

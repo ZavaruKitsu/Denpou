@@ -4,46 +4,46 @@ using TelegramBotBase.Controls.Hybrid;
 using TelegramBotBase.Enums;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests.Datasources
+namespace TelegramBotBaseTest.Tests.Datasources;
+
+public class List : FormBase
 {
-    public class List : FormBase
+    private ButtonGrid _buttons;
+
+    public List()
     {
-        private ButtonGrid __buttons;
+        Init += List_Init;
+    }
 
-        public List()
+    private Task List_Init(object sender, InitEventArgs e)
+    {
+        _buttons = new ButtonGrid();
+
+        _buttons.EnablePaging = true;
+        _buttons.EnableSearch = false;
+        _buttons.ButtonClicked += __buttons_ButtonClicked;
+        _buttons.KeyboardType = EKeyboardType.ReplyKeyboard;
+        _buttons.DeleteReplyMessage = true;
+
+        _buttons.HeadLayoutButtonRow = new ButtonRow(new ButtonBase("Back", "back"));
+
+        var cds = new CustomDataSource();
+        _buttons.DataSource = cds;
+
+        AddControl(_buttons);
+        return Task.CompletedTask;
+    }
+
+    private async Task __buttons_ButtonClicked(object sender, ButtonClickedEventArgs e)
+    {
+        switch (e.Button.Value)
         {
-            Init += List_Init;
-        }
+            case "back":
 
-        private async Task List_Init(object sender, InitEventArgs e)
-        {
-            __buttons = new ButtonGrid();
+                var mn = new Menu();
+                await NavigateTo(mn);
 
-            __buttons.EnablePaging = true;
-            __buttons.EnableSearch = false;
-            __buttons.ButtonClicked += __buttons_ButtonClicked;
-            __buttons.KeyboardType = eKeyboardType.ReplyKeyboard;
-            __buttons.DeleteReplyMessage = true;
-
-            __buttons.HeadLayoutButtonRow = new ButtonRow(new ButtonBase("Back", "back"));
-
-            var cds = new CustomDataSource();
-            __buttons.DataSource = cds;
-
-            AddControl(__buttons);
-        }
-
-        private async Task __buttons_ButtonClicked(object sender, ButtonClickedEventArgs e)
-        {
-            switch (e.Button.Value)
-            {
-                case "back":
-
-                    var mn = new Menu();
-                    await NavigateTo(mn);
-
-                    break;
-            }
+                break;
         }
     }
 }

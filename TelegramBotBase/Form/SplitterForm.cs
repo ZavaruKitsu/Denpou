@@ -9,10 +9,10 @@ namespace TelegramBotBase.Form
     /// </summary>
     public class SplitterForm : FormBase
     {
-        private static object __evOpenSupergroup = new object();
-        private static object __evOpenGroup = new object();
-        private static object __evOpenChannel = new object();
-        private static object __evOpen = new object();
+        private static object _evOpenSupergroup = new object();
+        private static object _evOpenGroup = new object();
+        private static object _evOpenChannel = new object();
+        private static object _evOpen = new object();
 
 
         public override async Task Load(MessageResult message)
@@ -34,24 +34,24 @@ namespace TelegramBotBase.Form
         }
 
 
-        public virtual async Task<bool> OpenSupergroup(MessageResult e)
+        public virtual Task<bool> OpenSupergroup(MessageResult e)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        public virtual async Task<bool> OpenChannel(MessageResult e)
+        public virtual Task<bool> OpenChannel(MessageResult e)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        public virtual async Task<bool> Open(MessageResult e)
+        public virtual Task<bool> Open(MessageResult e)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        public virtual async Task<bool> OpenGroup(MessageResult e)
+        public virtual Task<bool> OpenGroup(MessageResult e)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
 

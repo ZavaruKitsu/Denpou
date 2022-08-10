@@ -20,7 +20,7 @@ namespace TelegramBotBase.Controls.Inline
             VisibleMonth = DateTime.Today;
             FirstDayOfWeek = DayOfWeek.Monday;
             Culture = culture;
-            PickerMode = eMonthPickerMode.day;
+            PickerMode = EMonthPickerMode.Day;
         }
 
         public CalendarPicker() : this(new CultureInfo("en-en"))
@@ -40,7 +40,7 @@ namespace TelegramBotBase.Controls.Inline
 
         public string Title { get; set; } = Default.Language["CalendarPicker_Title"];
 
-        public eMonthPickerMode PickerMode { get; set; }
+        public EMonthPickerMode PickerMode { get; set; }
 
         public bool EnableDayView { get; set; } = true;
 
@@ -59,15 +59,15 @@ namespace TelegramBotBase.Controls.Inline
 
                     switch (PickerMode)
                     {
-                        case eMonthPickerMode.day:
+                        case EMonthPickerMode.Day:
                             VisibleMonth = VisibleMonth.AddMonths(1);
                             break;
 
-                        case eMonthPickerMode.month:
+                        case EMonthPickerMode.Month:
                             VisibleMonth = VisibleMonth.AddYears(1);
                             break;
 
-                        case eMonthPickerMode.year:
+                        case EMonthPickerMode.Year:
                             VisibleMonth = VisibleMonth.AddYears(10);
                             break;
                     }
@@ -78,15 +78,15 @@ namespace TelegramBotBase.Controls.Inline
 
                     switch (PickerMode)
                     {
-                        case eMonthPickerMode.day:
+                        case EMonthPickerMode.Day:
                             VisibleMonth = VisibleMonth.AddMonths(-1);
                             break;
 
-                        case eMonthPickerMode.month:
+                        case EMonthPickerMode.Month:
                             VisibleMonth = VisibleMonth.AddYears(-1);
                             break;
 
-                        case eMonthPickerMode.year:
+                        case EMonthPickerMode.Year:
                             VisibleMonth = VisibleMonth.AddYears(-10);
                             break;
                     }
@@ -95,18 +95,18 @@ namespace TelegramBotBase.Controls.Inline
 
                 case "$monthtitle$":
 
-                    if (EnableMonthView) PickerMode = eMonthPickerMode.month;
+                    if (EnableMonthView) PickerMode = EMonthPickerMode.Month;
 
                     break;
 
                 case "$yeartitle$":
 
-                    if (EnableYearView) PickerMode = eMonthPickerMode.year;
+                    if (EnableYearView) PickerMode = EMonthPickerMode.Year;
 
                     break;
                 case "$yearstitle$":
 
-                    if (EnableMonthView) PickerMode = eMonthPickerMode.month;
+                    if (EnableMonthView) PickerMode = EMonthPickerMode.Month;
 
                     VisibleMonth = SelectedDate;
 
@@ -125,7 +125,7 @@ namespace TelegramBotBase.Controls.Inline
                         SelectedDate = new DateTime(VisibleMonth.Year, month, 1);
                         VisibleMonth = SelectedDate;
 
-                        if (EnableDayView) PickerMode = eMonthPickerMode.day;
+                        if (EnableDayView) PickerMode = EMonthPickerMode.Day;
                     }
 
                     var year = 0;
@@ -134,7 +134,7 @@ namespace TelegramBotBase.Controls.Inline
                         SelectedDate = new DateTime(year, SelectedDate.Month, SelectedDate.Day);
                         VisibleMonth = SelectedDate;
 
-                        if (EnableMonthView) PickerMode = eMonthPickerMode.month;
+                        if (EnableMonthView) PickerMode = EMonthPickerMode.Month;
                     }
 
                     break;
@@ -148,7 +148,7 @@ namespace TelegramBotBase.Controls.Inline
 
             switch (PickerMode)
             {
-                case eMonthPickerMode.day:
+                case EMonthPickerMode.Day:
 
                     var month = VisibleMonth;
 
@@ -197,7 +197,7 @@ namespace TelegramBotBase.Controls.Inline
 
                     break;
 
-                case eMonthPickerMode.month:
+                case EMonthPickerMode.Month:
 
                     bf.AddButtonRow(new ButtonBase(Default.Language["CalendarPicker_PreviousPage"], "$prev$"),
                         new ButtonBase(VisibleMonth.Year.ToString("0000"), "$yeartitle$"),
@@ -214,7 +214,7 @@ namespace TelegramBotBase.Controls.Inline
 
                     break;
 
-                case eMonthPickerMode.year:
+                case EMonthPickerMode.Year:
 
                     bf.AddButtonRow(new ButtonBase(Default.Language["CalendarPicker_PreviousPage"], "$prev$"),
                         new ButtonBase("Year", "$yearstitle$"),

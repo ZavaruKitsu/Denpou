@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotBase.Enums
 {
-    public enum eKeyboardType
+    public enum EKeyboardType
     {
         /// <summary>
         ///     Uses a ReplyKeyboardMarkup

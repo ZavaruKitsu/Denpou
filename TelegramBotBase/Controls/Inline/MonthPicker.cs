@@ -6,7 +6,7 @@ namespace TelegramBotBase.Controls.Inline
     {
         public MonthPicker()
         {
-            PickerMode = eMonthPickerMode.month;
+            PickerMode = EMonthPickerMode.Month;
             EnableDayView = false;
         }
     }

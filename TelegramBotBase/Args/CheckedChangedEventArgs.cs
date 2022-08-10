@@ -9,11 +9,11 @@ namespace TelegramBotBase.Args
         {
         }
 
-        public CheckedChangedEventArgs(ButtonRow row, int Index, bool Checked)
+        public CheckedChangedEventArgs(ButtonRow row, int index, bool @checked)
         {
             Row = row;
-            this.Index = Index;
-            this.Checked = Checked;
+            Index = index;
+            Checked = @checked;
         }
 
         /// <summary>

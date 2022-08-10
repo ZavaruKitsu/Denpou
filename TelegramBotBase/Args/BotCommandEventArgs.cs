@@ -14,14 +14,14 @@ namespace TelegramBotBase.Args
         {
         }
 
-        public BotCommandEventArgs(string Command, List<string> Parameters, Message Message, long DeviceId,
-            DeviceSession Device)
+        public BotCommandEventArgs(string command, List<string> parameters, Message message, long deviceId,
+            DeviceSession device)
         {
-            this.Command = Command;
-            this.Parameters = Parameters;
-            OriginalMessage = Message;
-            this.DeviceId = DeviceId;
-            this.Device = Device;
+            Command = command;
+            Parameters = parameters;
+            OriginalMessage = message;
+            DeviceId = deviceId;
+            Device = device;
         }
 
         public string Command { get; set; }

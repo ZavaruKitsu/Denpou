@@ -12,7 +12,7 @@ namespace TelegramBotBase.States
     ///     Is used for simple object structures like classes, lists or basic datatypes without generics and other compiler
     ///     based data types.
     /// </summary>
-    public class SimpleJSONStateMachine : IStateMachine
+    public class SimpleJsonStateMachine : IStateMachine
     {
         /// <summary>
         ///     Will initialize the state machine.
@@ -24,16 +24,14 @@ namespace TelegramBotBase.States
         ///     <seealso cref="Form.FormBase" />.
         /// </param>
         /// <param name="overwrite">Declares of the file could be overwritten.</param>
-        public SimpleJSONStateMachine(string file, Type fallbackStateForm = null, bool overwrite = true)
+        public SimpleJsonStateMachine(string file, Type fallbackStateForm = null, bool overwrite = true)
         {
-            if (file is null) throw new ArgumentNullException(nameof(file));
-
             FallbackStateForm = fallbackStateForm;
 
             if (FallbackStateForm != null && !FallbackStateForm.IsSubclassOf(typeof(FormBase)))
                 throw new ArgumentException("FallbackStateForm is not a subclass of FormBase");
 
-            FilePath = file;
+            FilePath = file ?? throw new ArgumentNullException(nameof(file));
             Overwrite = overwrite;
         }
 

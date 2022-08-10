@@ -207,21 +207,21 @@ namespace TelegramBotBase.Form.Navigation
 
             Device.FormSwitched = true;
 
-            await form.OnClosed(new EventArgs());
+            await form.OnClosed(EventArgs.Empty);
 
             //Leave NavigationController and move to the last one
             if (ForceCleanupOnLastPop && History.Count == 1)
             {
-                var last_form = History[0];
-                last_form.NavigationController = null;
-                await NavigateTo(last_form);
+                var lastForm = History[0];
+                lastForm.NavigationController = null;
+                await NavigateTo(lastForm);
                 return;
             }
 
             if (History.Count > 0)
             {
                 form = History[Index];
-                await form.OnOpened(new EventArgs());
+                await form.OnOpened(EventArgs.Empty);
             }
         }
 
@@ -255,7 +255,7 @@ namespace TelegramBotBase.Form.Navigation
 
             await form.OnInit(new InitEventArgs(args));
 
-            await form.OnOpened(new EventArgs());
+            await form.OnOpened(EventArgs.Empty);
         }
 
         /// <summary>

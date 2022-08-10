@@ -11,7 +11,7 @@ namespace TelegramBotBase.States
     /// <summary>
     ///     Is used for all complex data types. Use if other default machines are not working.
     /// </summary>
-    public class JSONStateMachine : IStateMachine
+    public class JsonStateMachine : IStateMachine
     {
         /// <summary>
         ///     Will initialize the state machine.
@@ -23,16 +23,14 @@ namespace TelegramBotBase.States
         ///     <seealso cref="Form.FormBase" />.
         /// </param>
         /// <param name="overwrite">Declares of the file could be overwritten.</param>
-        public JSONStateMachine(string file, Type fallbackStateForm = null, bool overwrite = true)
+        public JsonStateMachine(string file, Type fallbackStateForm = null, bool overwrite = true)
         {
-            if (file is null) throw new ArgumentNullException(nameof(file));
-
             FallbackStateForm = fallbackStateForm;
 
             if (FallbackStateForm != null && !FallbackStateForm.IsSubclassOf(typeof(FormBase)))
                 throw new ArgumentException("FallbackStateForm is not a subclass of FormBase");
 
-            FilePath = file;
+            FilePath = file ?? throw new ArgumentNullException(nameof(file));
             Overwrite = overwrite;
         }
 

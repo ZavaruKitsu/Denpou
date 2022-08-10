@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -17,9 +16,9 @@ namespace TelegramBotBase.Form
         {
         }
 
-        public PromptDialog(string Message)
+        public PromptDialog(string message)
         {
-            this.Message = Message;
+            Message = message;
         }
 
         /// <summary>
@@ -37,9 +36,7 @@ namespace TelegramBotBase.Form
         /// </summary>
         public object Tag { get; set; }
 
-        private EventHandlerList __Events { get; } = new EventHandlerList();
-
-        private static object __evCompleted { get; } = new object();
+        private static object EvCompleted { get; } = new object();
 
         public bool ShowBackButton { get; set; } = false;
 
@@ -100,13 +97,13 @@ namespace TelegramBotBase.Form
 
         public event EventHandler<PromptDialogCompletedEventArgs> Completed
         {
-            add => __Events.AddHandler(__evCompleted, value);
-            remove => __Events.RemoveHandler(__evCompleted, value);
+            add => Events.AddHandler(EvCompleted, value);
+            remove => Events.RemoveHandler(EvCompleted, value);
         }
 
         public void OnCompleted(PromptDialogCompletedEventArgs e)
         {
-            (__Events[__evCompleted] as EventHandler<PromptDialogCompletedEventArgs>)?.Invoke(this, e);
+            (Events[EvCompleted] as EventHandler<PromptDialogCompletedEventArgs>)?.Invoke(this, e);
         }
     }
 }

@@ -10,9 +10,9 @@ namespace TelegramBotBase.Base
     {
         public DeviceSession Device { get; set; }
 
-        public int ID { get; set; }
+        public int Id { get; set; }
 
-        public string ControlID => "#c" + ID;
+        public string ControlId => "#c" + Id;
 
         /// <summary>
         ///     Defines if the control should be rendered and invoked with actions
@@ -27,29 +27,34 @@ namespace TelegramBotBase.Base
         {
         }
 
-        public virtual async Task Load(MessageResult result)
+        public virtual Task Load(MessageResult result)
         {
+            return Task.CompletedTask;
         }
 
-        public virtual async Task Action(MessageResult result, string value = null)
+        public virtual Task Action(MessageResult result, string value = null)
         {
+            return Task.CompletedTask;
         }
 
 
-        public virtual async Task Render(MessageResult result)
+        public virtual Task Render(MessageResult result)
         {
+            return Task.CompletedTask;
         }
 
-        public virtual async Task Hidden(bool FormClose)
+        public virtual Task Hidden(bool formClose)
         {
+            return Task.CompletedTask;
         }
 
         /// <summary>
         ///     Will be called on a cleanup.
         /// </summary>
         /// <returns></returns>
-        public virtual async Task Cleanup()
+        public virtual Task Cleanup()
         {
+            return Task.CompletedTask;
         }
     }
 }

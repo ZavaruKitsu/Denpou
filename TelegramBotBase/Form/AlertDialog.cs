@@ -8,10 +8,10 @@ namespace TelegramBotBase.Form
     [IgnoreState]
     public class AlertDialog : ConfirmDialog
     {
-        public AlertDialog(string Message, string ButtonText) : base(Message)
+        public AlertDialog(string message, string buttonText) : base(message)
         {
-            Buttons.Add(new ButtonBase(ButtonText, "ok"));
-            this.ButtonText = ButtonText;
+            Buttons.Add(new ButtonBase(buttonText, "ok"));
+            ButtonText = buttonText;
         }
 
         public string ButtonText { get; set; }

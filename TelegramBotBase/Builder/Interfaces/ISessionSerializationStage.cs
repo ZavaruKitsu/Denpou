@@ -24,7 +24,7 @@ namespace TelegramBotBase.Builder.Interfaces
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        ILanguageSelectionStage UseJSON(string path);
+        ILanguageSelectionStage UseJson(string path);
 
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace TelegramBotBase.Builder.Interfaces
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        ILanguageSelectionStage UseSimpleJSON(string path);
+        ILanguageSelectionStage UseSimpleJson(string path);
 
 
         /// <summary>
@@ -40,6 +40,6 @@ namespace TelegramBotBase.Builder.Interfaces
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        ILanguageSelectionStage UseXML(string path);
+        ILanguageSelectionStage UseXml(string path);
     }
 }

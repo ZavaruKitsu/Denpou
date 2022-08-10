@@ -5,45 +5,45 @@ using TelegramBotBase.Enums;
 using TelegramBotBase.Form;
 using TelegramBotBaseTest.Tests.Controls.Subclass;
 
-namespace TelegramBotBaseTest.Tests.Controls
+namespace TelegramBotBaseTest.Tests.Controls;
+
+public class MultiViewForm : AutoCleanForm
 {
-    public class MultiViewForm : AutoCleanForm
+    private ButtonGrid _bg;
+
+    private MultiViewTest _mvt;
+
+    public MultiViewForm()
     {
-        private ButtonGrid bg;
+        DeleteMode = EDeleteMode.OnLeavingForm;
+        Init += MultiViewForm_Init;
+    }
 
-        private MultiViewTest mvt;
+    private Task MultiViewForm_Init(object sender, InitEventArgs e)
+    {
+        _mvt = new MultiViewTest();
 
-        public MultiViewForm()
+        AddControl(_mvt);
+
+        _bg = new ButtonGrid();
+        _bg.ButtonsForm = new ButtonForm();
+        _bg.ButtonsForm.AddButtonRow("Back", "$back$");
+        _bg.ButtonClicked += Bg_ButtonClicked;
+        _bg.KeyboardType = EKeyboardType.ReplyKeyboard;
+        AddControl(_bg);
+        return Task.CompletedTask;
+    }
+
+    private async Task Bg_ButtonClicked(object sender, ButtonClickedEventArgs e)
+    {
+        switch (e.Button.Value)
         {
-            DeleteMode = eDeleteMode.OnLeavingForm;
-            Init += MultiViewForm_Init;
-        }
+            case "$back$":
 
-        private async Task MultiViewForm_Init(object sender, InitEventArgs e)
-        {
-            mvt = new MultiViewTest();
+                var mn = new Menu();
+                await NavigateTo(mn);
 
-            AddControl(mvt);
-
-            bg = new ButtonGrid();
-            bg.ButtonsForm = new ButtonForm();
-            bg.ButtonsForm.AddButtonRow("Back", "$back$");
-            bg.ButtonClicked += Bg_ButtonClicked;
-            bg.KeyboardType = eKeyboardType.ReplyKeyboard;
-            AddControl(bg);
-        }
-
-        private async Task Bg_ButtonClicked(object sender, ButtonClickedEventArgs e)
-        {
-            switch (e.Button.Value)
-            {
-                case "$back$":
-
-                    var mn = new Menu();
-                    await NavigateTo(mn);
-
-                    break;
-            }
+                break;
         }
     }
 }

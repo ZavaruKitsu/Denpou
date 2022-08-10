@@ -3,72 +3,72 @@ using Telegram.Bot.Types;
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests.Navigation
+namespace TelegramBotBaseTest.Tests.Navigation;
+
+public class Start : FormBase
 {
-    public class Start : FormBase
+    private Message _msg;
+
+
+    public override Task Load(MessageResult message)
     {
-        private Message msg;
+        return Task.CompletedTask;
+    }
 
+    public override async Task Action(MessageResult message)
+    {
+        if (message.Handled)
+            return;
 
-        public override async Task Load(MessageResult message)
+        await message.ConfirmAction();
+
+        switch (message.RawData)
         {
+            case "yes":
+
+                message.Handled = true;
+
+                //Create navigation controller and navigate to it, keep the current form as root form so we can get back to here later
+                var nc = new CustomController(this);
+                nc.ForceCleanupOnLastPop = true;
+
+                var f1 = new Form1();
+
+                await nc.PushAsync(f1);
+
+                await NavigateTo(nc);
+
+                if (_msg == null)
+                    return;
+
+                await Device.DeleteMessage(_msg);
+
+
+                break;
+            case "no":
+
+                message.Handled = true;
+
+                var mn = new Menu();
+
+                await NavigateTo(mn);
+
+                if (_msg == null)
+                    return;
+
+                await Device.DeleteMessage(_msg);
+
+                break;
         }
+    }
 
-        public override async Task Action(MessageResult message)
-        {
-            if (message.Handled)
-                return;
+    public override async Task Render(MessageResult message)
+    {
+        var bf = new ButtonForm();
 
-            await message.ConfirmAction();
+        bf.AddButtonRow("Yes", "yes");
+        bf.AddButtonRow("No", "no");
 
-            switch (message.RawData)
-            {
-                case "yes":
-
-                    message.Handled = true;
-
-                    //Create navigation controller and navigate to it, keep the current form as root form so we can get back to here later
-                    var nc = new CustomController(this);
-                    nc.ForceCleanupOnLastPop = true;
-
-                    var f1 = new Form1();
-
-                    await nc.PushAsync(f1);
-
-                    await NavigateTo(nc);
-
-                    if (msg == null)
-                        return;
-
-                    await Device.DeleteMessage(msg);
-
-
-                    break;
-                case "no":
-
-                    message.Handled = true;
-
-                    var mn = new Menu();
-
-                    await NavigateTo(mn);
-
-                    if (msg == null)
-                        return;
-
-                    await Device.DeleteMessage(msg);
-
-                    break;
-            }
-        }
-
-        public override async Task Render(MessageResult message)
-        {
-            var bf = new ButtonForm();
-
-            bf.AddButtonRow("Yes", "yes");
-            bf.AddButtonRow("No", "no");
-
-            msg = await Device.Send("Open controller?", bf);
-        }
+        _msg = await Device.Send("Open controller?", bf);
     }
 }

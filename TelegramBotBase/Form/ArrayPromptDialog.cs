@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using TelegramBotBase.Args;
@@ -19,15 +18,15 @@ namespace TelegramBotBase.Form
         {
         }
 
-        public ArrayPromptDialog(string Message)
+        public ArrayPromptDialog(string message)
         {
-            this.Message = Message;
+            Message = message;
         }
 
-        public ArrayPromptDialog(string Message, params ButtonBase[][] Buttons)
+        public ArrayPromptDialog(string message, params ButtonBase[][] buttons)
         {
-            this.Message = Message;
-            this.Buttons = Buttons;
+            Message = message;
+            Buttons = buttons;
         }
 
         /// <summary>
@@ -44,9 +43,7 @@ namespace TelegramBotBase.Form
 
         [Obsolete] public Dictionary<string, FormBase> ButtonForms { get; set; } = new Dictionary<string, FormBase>();
 
-        private EventHandlerList __Events { get; } = new EventHandlerList();
-
-        private static object __evButtonClicked { get; } = new object();
+        private static object EvButtonClicked { get; } = new object();
 
         public override async Task Action(MessageResult message)
         {
@@ -91,13 +88,13 @@ namespace TelegramBotBase.Form
 
         public event EventHandler<ButtonClickedEventArgs> ButtonClicked
         {
-            add => __Events.AddHandler(__evButtonClicked, value);
-            remove => __Events.RemoveHandler(__evButtonClicked, value);
+            add => Events.AddHandler(EvButtonClicked, value);
+            remove => Events.RemoveHandler(EvButtonClicked, value);
         }
 
         public void OnButtonClicked(ButtonClickedEventArgs e)
         {
-            (__Events[__evButtonClicked] as EventHandler<ButtonClickedEventArgs>)?.Invoke(this, e);
+            (Events[EvButtonClicked] as EventHandler<ButtonClickedEventArgs>)?.Invoke(this, e);
         }
     }
 }

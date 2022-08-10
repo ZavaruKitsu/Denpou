@@ -9,21 +9,21 @@ namespace TelegramBotBase.Controls.Inline
 {
     public class ToggleButton : ControlBase
     {
-        private static readonly object __evToggled = new object();
+        private static readonly object EvToggled = new object();
 
-        private readonly EventHandlerList Events = new EventHandlerList();
+        private readonly EventHandlerList _events = new EventHandlerList();
 
-        private bool RenderNecessary = true;
+        private bool _renderNecessary = true;
 
 
         public ToggleButton()
         {
         }
 
-        public ToggleButton(string CheckedString, string UncheckedString)
+        public ToggleButton(string checkedString, string uncheckedString)
         {
-            this.CheckedString = CheckedString;
-            this.UncheckedString = UncheckedString;
+            CheckedString = checkedString;
+            UncheckedString = uncheckedString;
         }
 
         public string UncheckedIcon { get; set; } = Default.Language["ToggleButton_OffIcon"];
@@ -44,13 +44,13 @@ namespace TelegramBotBase.Controls.Inline
 
         public event EventHandler Toggled
         {
-            add => Events.AddHandler(__evToggled, value);
-            remove => Events.RemoveHandler(__evToggled, value);
+            add => _events.AddHandler(EvToggled, value);
+            remove => _events.RemoveHandler(EvToggled, value);
         }
 
         public void OnToggled(EventArgs e)
         {
-            (Events[__evToggled] as EventHandler)?.Invoke(this, e);
+            (_events[EvToggled] as EventHandler)?.Invoke(this, e);
         }
 
         public override async Task Action(MessageResult result, string value = null)
@@ -67,11 +67,11 @@ namespace TelegramBotBase.Controls.Inline
                     if (Checked)
                         return;
 
-                    RenderNecessary = true;
+                    _renderNecessary = true;
 
                     Checked = true;
 
-                    OnToggled(new EventArgs());
+                    OnToggled(EventArgs.Empty);
 
                     break;
 
@@ -80,17 +80,17 @@ namespace TelegramBotBase.Controls.Inline
                     if (!Checked)
                         return;
 
-                    RenderNecessary = true;
+                    _renderNecessary = true;
 
                     Checked = false;
 
-                    OnToggled(new EventArgs());
+                    OnToggled(EventArgs.Empty);
 
                     break;
 
                 default:
 
-                    RenderNecessary = false;
+                    _renderNecessary = false;
 
                     break;
             }
@@ -100,7 +100,7 @@ namespace TelegramBotBase.Controls.Inline
 
         public override async Task Render(MessageResult result)
         {
-            if (!RenderNecessary)
+            if (!_renderNecessary)
                 return;
 
             var bf = new ButtonForm(this);
@@ -121,7 +121,7 @@ namespace TelegramBotBase.Controls.Inline
                 if (m != null) MessageId = m.MessageId;
             }
 
-            RenderNecessary = false;
+            _renderNecessary = false;
         }
     }
 }

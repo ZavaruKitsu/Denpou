@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using TelegramBotBase.Args;
@@ -16,16 +15,16 @@ namespace TelegramBotBase.Form
         {
         }
 
-        public ConfirmDialog(string Message)
+        public ConfirmDialog(string message)
         {
-            this.Message = Message;
+            Message = message;
             Buttons = new List<ButtonBase>();
         }
 
-        public ConfirmDialog(string Message, params ButtonBase[] Buttons)
+        public ConfirmDialog(string message, params ButtonBase[] buttons)
         {
-            this.Message = Message;
-            this.Buttons = Buttons.ToList();
+            Message = message;
+            Buttons = buttons.ToList();
         }
 
         /// <summary>
@@ -45,9 +44,7 @@ namespace TelegramBotBase.Form
 
         public List<ButtonBase> Buttons { get; set; }
 
-        private EventHandlerList __Events { get; } = new EventHandlerList();
-
-        private static object __evButtonClicked { get; } = new object();
+        private static object EvButtonClicked { get; } = new object();
 
         /// <summary>
         ///     Adds one Button
@@ -100,13 +97,13 @@ namespace TelegramBotBase.Form
 
         public event EventHandler<ButtonClickedEventArgs> ButtonClicked
         {
-            add => __Events.AddHandler(__evButtonClicked, value);
-            remove => __Events.RemoveHandler(__evButtonClicked, value);
+            add => Events.AddHandler(EvButtonClicked, value);
+            remove => Events.RemoveHandler(EvButtonClicked, value);
         }
 
         public void OnButtonClicked(ButtonClickedEventArgs e)
         {
-            (__Events[__evButtonClicked] as EventHandler<ButtonClickedEventArgs>)?.Invoke(this, e);
+            (Events[EvButtonClicked] as EventHandler<ButtonClickedEventArgs>)?.Invoke(this, e);
         }
     }
 }

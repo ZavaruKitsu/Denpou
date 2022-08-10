@@ -19,16 +19,16 @@ namespace TelegramBotBase.Args
             Index = -1;
         }
 
-        public ButtonClickedEventArgs(ButtonBase button, int Index)
+        public ButtonClickedEventArgs(ButtonBase button, int index)
         {
             Button = button;
-            this.Index = Index;
+            Index = index;
         }
 
-        public ButtonClickedEventArgs(ButtonBase button, int Index, ButtonRow row)
+        public ButtonClickedEventArgs(ButtonBase button, int index, ButtonRow row)
         {
             Button = button;
-            this.Index = Index;
+            Index = index;
             Row = row;
         }
 

@@ -19,19 +19,19 @@ namespace TelegramBotBase.Controls.Hybrid
 {
     public class ButtonGrid : ControlBase
     {
-        private static readonly object __evButtonClicked = new object();
+        private static readonly object EvButtonClicked = new object();
 
-        private readonly EventHandlerList Events = new EventHandlerList();
+        private readonly EventHandlerList _events = new EventHandlerList();
 
-        private eKeyboardType m_eKeyboardType = eKeyboardType.ReplyKeyboard;
+        private EKeyboardType _mEKeyboardType = EKeyboardType.ReplyKeyboard;
+
+        private bool _renderNecessary = true;
 
         public string NextPageLabel = Default.Language["ButtonGrid_NextPage"];
 
         public string NoItemsLabel = Default.Language["ButtonGrid_NoItems"];
 
         public string PreviousPageLabel = Default.Language["ButtonGrid_PreviousPage"];
-
-        private bool RenderNecessary = true;
 
         public string SearchLabel = Default.Language["ButtonGrid_SearchFeature"];
 
@@ -40,9 +40,9 @@ namespace TelegramBotBase.Controls.Hybrid
             DataSource = new ButtonFormDataSource();
         }
 
-        public ButtonGrid(eKeyboardType type) : this()
+        public ButtonGrid(EKeyboardType type) : this()
         {
-            m_eKeyboardType = type;
+            _mEKeyboardType = type;
         }
 
 
@@ -109,7 +109,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
         public string SearchQuery { get; set; }
 
-        public eNavigationBarVisibility NavigationBarVisibility { get; set; } = eNavigationBarVisibility.always;
+        public ENavigationBarVisibility NavigationBarVisibility { get; set; } = ENavigationBarVisibility.Always;
 
 
         /// <summary>
@@ -130,18 +130,18 @@ namespace TelegramBotBase.Controls.Hybrid
         /// <summary>
         ///     Defines which type of Button Keyboard should be rendered.
         /// </summary>
-        public eKeyboardType KeyboardType
+        public EKeyboardType KeyboardType
         {
-            get => m_eKeyboardType;
+            get => _mEKeyboardType;
             set
             {
-                if (m_eKeyboardType != value)
+                if (_mEKeyboardType != value)
                 {
-                    RenderNecessary = true;
+                    _renderNecessary = true;
 
                     Cleanup().Wait();
 
-                    m_eKeyboardType = value;
+                    _mEKeyboardType = value;
                 }
             }
         }
@@ -150,10 +150,10 @@ namespace TelegramBotBase.Controls.Hybrid
         {
             get
             {
-                if (KeyboardType == eKeyboardType.InlineKeyBoard &&
+                if (KeyboardType == EKeyboardType.InlineKeyBoard &&
                     TotalRows > Constants.Telegram.MaxInlineKeyBoardRows) return true;
 
-                if (KeyboardType == eKeyboardType.ReplyKeyboard &&
+                if (KeyboardType == EKeyboardType.ReplyKeyboard &&
                     TotalRows > Constants.Telegram.MaxReplyKeyboardRows) return true;
 
                 return false;
@@ -164,8 +164,8 @@ namespace TelegramBotBase.Controls.Hybrid
         {
             get
             {
-                if ((NavigationBarVisibility == eNavigationBarVisibility.always) |
-                    (NavigationBarVisibility == eNavigationBarVisibility.auto && PagingNecessary)) return true;
+                if ((NavigationBarVisibility == ENavigationBarVisibility.Always) |
+                    (NavigationBarVisibility == ENavigationBarVisibility.Auto && PagingNecessary)) return true;
 
                 return false;
             }
@@ -180,10 +180,10 @@ namespace TelegramBotBase.Controls.Hybrid
             {
                 switch (KeyboardType)
                 {
-                    case eKeyboardType.InlineKeyBoard:
+                    case EKeyboardType.InlineKeyBoard:
                         return Constants.Telegram.MaxInlineKeyBoardRows;
 
-                    case eKeyboardType.ReplyKeyboard:
+                    case EKeyboardType.ReplyKeyboard:
                         return Constants.Telegram.MaxReplyKeyboardRows;
 
                     default:
@@ -207,8 +207,8 @@ namespace TelegramBotBase.Controls.Hybrid
             {
                 var layoutRows = 0;
 
-                if ((NavigationBarVisibility == eNavigationBarVisibility.always) |
-                    (NavigationBarVisibility == eNavigationBarVisibility.auto))
+                if ((NavigationBarVisibility == ENavigationBarVisibility.Always) |
+                    (NavigationBarVisibility == ENavigationBarVisibility.Auto))
                     layoutRows += 2;
 
                 if (HeadLayoutButtonRow != null && HeadLayoutButtonRow.Count > 0)
@@ -255,13 +255,13 @@ namespace TelegramBotBase.Controls.Hybrid
 
         public event AsyncEventHandler<ButtonClickedEventArgs> ButtonClicked
         {
-            add => Events.AddHandler(__evButtonClicked, value);
-            remove => Events.RemoveHandler(__evButtonClicked, value);
+            add => _events.AddHandler(EvButtonClicked, value);
+            remove => _events.RemoveHandler(EvButtonClicked, value);
         }
 
         public async Task OnButtonClicked(ButtonClickedEventArgs e)
         {
-            var handler = Events[__evButtonClicked]?.GetInvocationList()
+            var handler = _events[EvButtonClicked]?.GetInvocationList()
                 .Cast<AsyncEventHandler<ButtonClickedEventArgs>>();
             if (handler == null)
                 return;
@@ -287,7 +287,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
         public override async Task Load(MessageResult result)
         {
-            if (KeyboardType != eKeyboardType.ReplyKeyboard)
+            if (KeyboardType != EKeyboardType.ReplyKeyboard)
                 return;
 
             if (!result.IsFirstHandler)
@@ -388,7 +388,7 @@ namespace TelegramBotBase.Controls.Hybrid
                 return;
 
             //Find clicked button depending on Text or Value (depending on markup type)
-            if (KeyboardType != eKeyboardType.InlineKeyBoard)
+            if (KeyboardType != EKeyboardType.InlineKeyBoard)
                 return;
 
             await result.ConfirmAction(ConfirmationText ?? "");
@@ -460,9 +460,9 @@ namespace TelegramBotBase.Controls.Hybrid
         /// </summary>
         private void CheckGrid()
         {
-            switch (m_eKeyboardType)
+            switch (_mEKeyboardType)
             {
-                case eKeyboardType.InlineKeyBoard:
+                case EKeyboardType.InlineKeyBoard:
 
                     if (DataSource.RowCount > Constants.Telegram.MaxInlineKeyBoardRows && !EnablePaging)
                         throw new MaximumRowsReachedException
@@ -474,7 +474,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
                     break;
 
-                case eKeyboardType.ReplyKeyboard:
+                case EKeyboardType.ReplyKeyboard:
 
                     if (DataSource.RowCount > Constants.Telegram.MaxReplyKeyboardRows && !EnablePaging)
                         throw new MaximumRowsReachedException
@@ -490,13 +490,13 @@ namespace TelegramBotBase.Controls.Hybrid
 
         public override async Task Render(MessageResult result)
         {
-            if (!RenderNecessary)
+            if (!_renderNecessary)
                 return;
 
             //Check for rows and column limits
             CheckGrid();
 
-            RenderNecessary = false;
+            _renderNecessary = false;
 
             var form = DataSource.PickItems(CurrentPageIndex * ItemRowsPerPage, ItemRowsPerPage,
                 EnableSearch ? SearchQuery : null);
@@ -529,7 +529,7 @@ namespace TelegramBotBase.Controls.Hybrid
             switch (KeyboardType)
             {
                 //Reply Keyboard could only be updated with a new keyboard.
-                case eKeyboardType.ReplyKeyboard:
+                case EKeyboardType.ReplyKeyboard:
 
 
                     if (form.Count == 0)
@@ -561,7 +561,7 @@ namespace TelegramBotBase.Controls.Hybrid
                     rkm.ResizeKeyboard = ResizeKeyboard;
                     rkm.OneTimeKeyboard = OneTimeKeyboard;
                     m = await Device.Send(Title, rkm, disableNotification: true, parseMode: MessageParseMode,
-                        MarkdownV2AutoEscape: false);
+                        markdownV2AutoEscape: false);
 
                     //Prevent flicker of keyboard
                     if (DeletePreviousMessage && MessageId != null)
@@ -569,7 +569,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
                     break;
 
-                case eKeyboardType.InlineKeyBoard:
+                case EKeyboardType.InlineKeyBoard:
 
                     //Try to edit message if message id is available
                     //When the returned message is null then the message has been already deleted, resend it
@@ -585,7 +585,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
                     //When no message id is available or it has been deleted due the use of AutoCleanForm re-render automatically
                     m = await Device.Send(Title, (InlineKeyboardMarkup)form, disableNotification: true,
-                        parseMode: MessageParseMode, MarkdownV2AutoEscape: false);
+                        parseMode: MessageParseMode, markdownV2AutoEscape: false);
 
                     break;
             }
@@ -595,7 +595,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
         private void IntegratePagingView(ButtonForm dataForm)
         {
-            //No Items 
+            //No Items
             if (dataForm.Rows == 0) dataForm.AddButtonRow(new ButtonBase(NoItemsLabel, "$"));
 
             if (IsNavigationBarVisible)
@@ -616,14 +616,15 @@ namespace TelegramBotBase.Controls.Hybrid
             }
         }
 
-        public override async Task Hidden(bool FormClose)
+        public override Task Hidden(bool formClose)
         {
             //Prepare for opening Modal, and comming back
-            if (!FormClose)
+            if (!formClose)
                 Updated();
             else
                 //Remove event handler
                 Device.MessageDeleted -= Device_MessageDeleted;
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -631,7 +632,7 @@ namespace TelegramBotBase.Controls.Hybrid
         /// </summary>
         public void Updated()
         {
-            RenderNecessary = true;
+            _renderNecessary = true;
         }
 
         public override async Task Cleanup()
@@ -641,14 +642,14 @@ namespace TelegramBotBase.Controls.Hybrid
 
             switch (KeyboardType)
             {
-                case eKeyboardType.InlineKeyBoard:
+                case EKeyboardType.InlineKeyBoard:
 
                     await Device.DeleteMessage(MessageId.Value);
 
                     MessageId = null;
 
                     break;
-                case eKeyboardType.ReplyKeyboard:
+                case EKeyboardType.ReplyKeyboard:
 
                     if (HideKeyboardOnCleanup) await Device.HideReplyKeyboard();
 

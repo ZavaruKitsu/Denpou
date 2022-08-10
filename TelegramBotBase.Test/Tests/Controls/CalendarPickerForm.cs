@@ -5,64 +5,64 @@ using TelegramBotBase.Controls.Inline;
 using TelegramBotBase.Enums;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests.Controls
+namespace TelegramBotBaseTest.Tests.Controls;
+
+public class CalendarPickerForm : AutoCleanForm
 {
-    public class CalendarPickerForm : AutoCleanForm
+    public CalendarPickerForm()
     {
-        public CalendarPickerForm()
+        DeleteMode = EDeleteMode.OnLeavingForm;
+        Init += CalendarPickerForm_Init;
+    }
+
+    public CalendarPicker Picker { get; set; }
+
+    private int? SelectedDateMessage { get; set; }
+
+    private Task CalendarPickerForm_Init(object sender, InitEventArgs e)
+    {
+        Picker = new CalendarPicker();
+        Picker.Title = "Datum auswählen / Pick date";
+
+        AddControl(Picker);
+        return Task.CompletedTask;
+    }
+
+
+    public override async Task Action(MessageResult message)
+    {
+        switch (message.RawData)
         {
-            DeleteMode = eDeleteMode.OnLeavingForm;
-            Init += CalendarPickerForm_Init;
+            case "back":
+
+                var s = new Menu();
+
+                await NavigateTo(s);
+
+                break;
         }
+    }
 
-        public CalendarPicker Picker { get; set; }
+    public override async Task Render(MessageResult message)
+    {
+        var s = "";
 
-        private int? selectedDateMessage { get; set; }
+        s = "Selected date is " + Picker.SelectedDate.ToShortDateString() + "\r\n";
+        s += "Selected month is " + Picker.Culture.DateTimeFormat.MonthNames[Picker.VisibleMonth.Month - 1] +
+             "\r\n";
+        s += "Selected year is " + Picker.VisibleMonth.Year;
 
-        private async Task CalendarPickerForm_Init(object sender, InitEventArgs e)
+        var bf = new ButtonForm();
+        bf.AddButtonRow(new ButtonBase("Back", "back"));
+
+        if (SelectedDateMessage != null)
         {
-            Picker = new CalendarPicker();
-            Picker.Title = "Datum auswählen / Pick date";
-
-            AddControl(Picker);
+            await Device.Edit(SelectedDateMessage.Value, s, bf);
         }
-
-
-        public override async Task Action(MessageResult message)
+        else
         {
-            switch (message.RawData)
-            {
-                case "back":
-
-                    var s = new Menu();
-
-                    await NavigateTo(s);
-
-                    break;
-            }
-        }
-
-        public override async Task Render(MessageResult message)
-        {
-            var s = "";
-
-            s = "Selected date is " + Picker.SelectedDate.ToShortDateString() + "\r\n";
-            s += "Selected month is " + Picker.Culture.DateTimeFormat.MonthNames[Picker.VisibleMonth.Month - 1] +
-                 "\r\n";
-            s += "Selected year is " + Picker.VisibleMonth.Year;
-
-            var bf = new ButtonForm();
-            bf.AddButtonRow(new ButtonBase("Back", "back"));
-
-            if (selectedDateMessage != null)
-            {
-                await Device.Edit(selectedDateMessage.Value, s, bf);
-            }
-            else
-            {
-                var m = await Device.Send(s, bf);
-                selectedDateMessage = m.MessageId;
-            }
+            var m = await Device.Send(s, bf);
+            SelectedDateMessage = m.MessageId;
         }
     }
 }

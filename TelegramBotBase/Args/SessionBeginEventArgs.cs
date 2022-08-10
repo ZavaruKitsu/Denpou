@@ -5,10 +5,10 @@ namespace TelegramBotBase.Base
 {
     public class SessionBeginEventArgs : EventArgs
     {
-        public SessionBeginEventArgs(long DeviceId, DeviceSession Device)
+        public SessionBeginEventArgs(long deviceId, DeviceSession device)
         {
-            this.DeviceId = DeviceId;
-            this.Device = Device;
+            DeviceId = deviceId;
+            Device = device;
         }
 
         public long DeviceId { get; set; }

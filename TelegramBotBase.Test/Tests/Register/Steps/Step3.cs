@@ -2,62 +2,60 @@
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
-namespace TelegramBotBaseTest.Tests.Register.Steps
+namespace TelegramBotBaseTest.Tests.Register.Steps;
+
+public class Step3 : AutoCleanForm
 {
-    public class Step3 : AutoCleanForm
+    public Data UserData { get; set; }
+
+    public override Task Load(MessageResult message)
     {
-        public Data UserData { get; set; }
+        if (message.Handled)
+            return Task.CompletedTask;
 
-        public override async Task Load(MessageResult message)
+        if (message.MessageText.Trim() == "")
+            return Task.CompletedTask;
+
+        if (UserData.EMail == null) UserData.EMail = message.MessageText;
+
+        return Task.CompletedTask;
+    }
+
+    public override async Task Action(MessageResult message)
+    {
+        await message.ConfirmAction();
+
+        switch (message.RawData)
         {
-            if (message.Handled)
-                return;
+            case "back":
 
-            if (message.MessageText.Trim() == "")
-                return;
+                var start = new Start();
 
-            if (UserData.EMail == null)
-            {
-                UserData.EMail = message.MessageText;
-            }
+                await NavigateTo(start);
+
+                break;
+        }
+    }
+
+    public override async Task Render(MessageResult message)
+    {
+        if (UserData.EMail == null)
+        {
+            await Device.Send("Please sent your email:");
+            return;
         }
 
-        public override async Task Action(MessageResult message)
-        {
-            await message.ConfirmAction();
+        message.Handled = true;
 
-            switch (message.RawData)
-            {
-                case "back":
+        var s = "";
 
-                    var start = new Start();
+        s += "Firstname: " + UserData.Firstname + "\r\n";
+        s += "Lastname: " + UserData.Lastname + "\r\n";
+        s += "E-Mail: " + UserData.EMail + "\r\n";
 
-                    await NavigateTo(start);
+        var bf = new ButtonForm();
+        bf.AddButtonRow(new ButtonBase("Back", "back"));
 
-                    break;
-            }
-        }
-
-        public override async Task Render(MessageResult message)
-        {
-            if (UserData.EMail == null)
-            {
-                await Device.Send("Please sent your email:");
-                return;
-            }
-
-            message.Handled = true;
-
-            var s = "";
-
-            s += "Firstname: " + UserData.Firstname + "\r\n";
-            s += "Lastname: " + UserData.Lastname + "\r\n";
-            s += "E-Mail: " + UserData.EMail + "\r\n";
-
-            var bf = new ButtonForm();
-            bf.AddButtonRow(new ButtonBase("Back", "back"));
-
-            await Device.Send("Your details:\r\n" + s, bf);
-        }
+        await Device.Send("Your details:\r\n" + s, bf);
     }
 }

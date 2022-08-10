@@ -10,12 +10,12 @@ namespace TelegramBotBase.Controls.Hybrid
     /// </summary>
     public abstract class MultiView : ControlBase
     {
+        private int _mISelectedViewIndex;
+
         /// <summary>
         ///     Hold if the View has been rendered already.
         /// </summary>
-        private bool _Rendered;
-
-        private int m_iSelectedViewIndex;
+        private bool _rendered;
 
 
         public MultiView()
@@ -28,13 +28,13 @@ namespace TelegramBotBase.Controls.Hybrid
         /// </summary>
         public int SelectedViewIndex
         {
-            get => m_iSelectedViewIndex;
+            get => _mISelectedViewIndex;
             set
             {
-                m_iSelectedViewIndex = value;
+                _mISelectedViewIndex = value;
 
                 //Already rendered? Re-Render
-                if (_Rendered)
+                if (_rendered)
                     ForceRender().Wait();
             }
         }
@@ -55,23 +55,24 @@ namespace TelegramBotBase.Controls.Hybrid
             Device.MessageSent += Device_MessageSent;
         }
 
-        public override async Task Load(MessageResult result)
+        public override Task Load(MessageResult result)
         {
-            _Rendered = false;
+            _rendered = false;
+            return Task.CompletedTask;
         }
 
 
         public override async Task Render(MessageResult result)
         {
             //When already rendered, skip rendering
-            if (_Rendered)
+            if (_rendered)
                 return;
 
             await CleanUpView();
 
             await RenderView(new RenderViewEventArgs(SelectedViewIndex));
 
-            _Rendered = true;
+            _rendered = true;
         }
 
 
@@ -79,8 +80,9 @@ namespace TelegramBotBase.Controls.Hybrid
         ///     Will get invoked on rendering the current controls view.
         /// </summary>
         /// <param name="e"></param>
-        public virtual async Task RenderView(RenderViewEventArgs e)
+        public virtual Task RenderView(RenderViewEventArgs e)
         {
+            return Task.CompletedTask;
         }
 
         private async Task CleanUpView()
@@ -103,7 +105,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
             await RenderView(new RenderViewEventArgs(SelectedViewIndex));
 
-            _Rendered = true;
+            _rendered = true;
         }
 
         public override async Task Cleanup()

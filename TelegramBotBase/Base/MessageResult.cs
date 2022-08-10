@@ -27,7 +27,7 @@ namespace TelegramBotBase.Base
         public override long DeviceId =>
             UpdateData?.Message?.Chat?.Id
             ?? UpdateData?.EditedMessage?.Chat.Id
-            ?? UpdateData?.CallbackQuery.Message?.Chat.Id
+            ?? UpdateData?.CallbackQuery?.Message?.Chat.Id
             ?? Device?.DeviceId
             ?? 0;
 
@@ -48,7 +48,7 @@ namespace TelegramBotBase.Base
 
         public MessageType MessageType => Message?.Type ?? MessageType.Unknown;
 
-        public Message Message =>
+        public override Message Message =>
             UpdateData?.Message
             ?? UpdateData?.EditedMessage
             ?? UpdateData?.ChannelPost

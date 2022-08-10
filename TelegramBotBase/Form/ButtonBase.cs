@@ -13,11 +13,11 @@ namespace TelegramBotBase.Form
         {
         }
 
-        public ButtonBase(string Text, string Value, string Url = null)
+        public ButtonBase(string text, string value, string url = null)
         {
-            this.Text = Text;
-            this.Value = Value;
-            this.Url = Url;
+            Text = text;
+            Value = value;
+            Url = url;
         }
 
         public virtual string Text { get; set; }
@@ -34,7 +34,7 @@ namespace TelegramBotBase.Form
         /// <returns></returns>
         public virtual InlineKeyboardButton ToInlineButton(ButtonForm form)
         {
-            var id = form.DependencyControl != null ? form.DependencyControl.ControlID + "_" : "";
+            var id = form.DependencyControl != null ? form.DependencyControl.ControlId + "_" : "";
             if (Url == null) return InlineKeyboardButton.WithCallbackData(Text, id + Value);
 
             var ikb = new InlineKeyboardButton(Text);

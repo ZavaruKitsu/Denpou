@@ -9,7 +9,7 @@ using TelegramBotBase.Interfaces;
 
 namespace TelegramBotBase.States
 {
-    public class XMLStateMachine : IStateMachine
+    public class XmlStateMachine : IStateMachine
     {
         /// <summary>
         ///     Will initialize the state machine.
@@ -21,16 +21,14 @@ namespace TelegramBotBase.States
         ///     <seealso cref="Form.FormBase" />.
         /// </param>
         /// <param name="overwrite">Declares of the file could be overwritten.</param>
-        public XMLStateMachine(string file, Type fallbackStateForm = null, bool overwrite = true)
+        public XmlStateMachine(string file, Type fallbackStateForm = null, bool overwrite = true)
         {
-            if (file is null) throw new ArgumentNullException(nameof(file));
-
             FallbackStateForm = fallbackStateForm;
 
             if (FallbackStateForm != null && !FallbackStateForm.IsSubclassOf(typeof(FormBase)))
                 throw new ArgumentException("FallbackStateForm is not a subclass of FormBase");
 
-            FilePath = file;
+            FilePath = file ?? throw new ArgumentNullException(nameof(file));
             Overwrite = overwrite;
         }
 

@@ -9,11 +9,11 @@ namespace TelegramBotBase.Args
         {
         }
 
-        public SystemExceptionEventArgs(string Command, long DeviceId, DeviceSession Device, Exception error)
+        public SystemExceptionEventArgs(string command, long deviceId, DeviceSession device, Exception error)
         {
-            this.Command = Command;
-            this.DeviceId = DeviceId;
-            this.Device = Device;
+            Command = command;
+            DeviceId = deviceId;
+            Device = device;
             Error = error;
         }
 

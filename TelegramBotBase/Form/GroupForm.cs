@@ -51,22 +51,26 @@ namespace TelegramBotBase.Form
             await OnMessageEdit(message);
         }
 
-        public virtual async Task OnMemberChanges(MemberChangeEventArgs e)
+        public virtual Task OnMemberChanges(MemberChangeEventArgs e)
         {
+            return Task.CompletedTask;
         }
 
 
-        public virtual async Task OnGroupChanged(GroupChangedEventArgs e)
+        public virtual Task OnGroupChanged(GroupChangedEventArgs e)
         {
+            return Task.CompletedTask;
         }
 
 
-        public virtual async Task OnMessage(MessageResult e)
+        public virtual Task OnMessage(MessageResult e)
         {
+            return Task.CompletedTask;
         }
 
-        public virtual async Task OnMessageEdit(MessageResult e)
+        public virtual Task OnMessageEdit(MessageResult e)
         {
+            return Task.CompletedTask;
         }
     }
 }

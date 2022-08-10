@@ -8,22 +8,22 @@ namespace TelegramBotBase.Datasources
 {
     public class ButtonFormDataSource : IDataSource<ButtonRow>
     {
-        private ButtonForm __buttonform;
+        private ButtonForm _buttonform;
 
         public ButtonFormDataSource()
         {
-            __buttonform = new ButtonForm();
+            _buttonform = new ButtonForm();
         }
 
         public ButtonFormDataSource(ButtonForm bf)
         {
-            __buttonform = bf;
+            _buttonform = bf;
         }
 
         public virtual ButtonForm ButtonForm
         {
-            get => __buttonform;
-            set => __buttonform = value;
+            get => _buttonform;
+            set => _buttonform = value;
         }
 
 

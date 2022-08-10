@@ -5,10 +5,10 @@ namespace TelegramBotBase.Base
 {
     public class MessageIncomeEventArgs : EventArgs
     {
-        public MessageIncomeEventArgs(long DeviceId, DeviceSession Device, MessageResult message)
+        public MessageIncomeEventArgs(long deviceId, DeviceSession device, MessageResult message)
         {
-            this.DeviceId = DeviceId;
-            this.Device = Device;
+            DeviceId = deviceId;
+            Device = device;
             Message = message;
         }
 

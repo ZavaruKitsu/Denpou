@@ -9,25 +9,25 @@ namespace TelegramBotBase.Controls.Inline
     /// </summary>
     public class ProgressBar : ControlBase
     {
-        public enum eProgressStyle
+        public enum EProgressStyle
         {
-            standard = 0,
-            squares = 1,
-            circles = 2,
-            lines = 3,
-            squaredLines = 4,
-            custom = 10
+            Standard = 0,
+            Squares = 1,
+            Circles = 2,
+            Lines = 3,
+            SquaredLines = 4,
+            Custom = 10
         }
 
-        private eProgressStyle m_eStyle = eProgressStyle.standard;
+        private EProgressStyle _mEStyle = EProgressStyle.Standard;
 
-        private int m_iMax = 100;
+        private int _mIMax = 100;
 
-        private int m_iValue;
+        private int _mIValue;
 
         public ProgressBar()
         {
-            ProgressStyle = eProgressStyle.standard;
+            ProgressStyle = EProgressStyle.Standard;
 
             Value = 0;
             Max = 100;
@@ -35,21 +35,21 @@ namespace TelegramBotBase.Controls.Inline
             RenderNecessary = true;
         }
 
-        public ProgressBar(int Value, int Max, eProgressStyle Style)
+        public ProgressBar(int value, int max, EProgressStyle style)
         {
-            this.Value = Value;
-            this.Max = Max;
-            ProgressStyle = Style;
+            Value = value;
+            Max = max;
+            ProgressStyle = style;
 
             RenderNecessary = true;
         }
 
-        public eProgressStyle ProgressStyle
+        public EProgressStyle ProgressStyle
         {
-            get => m_eStyle;
+            get => _mEStyle;
             set
             {
-                m_eStyle = value;
+                _mEStyle = value;
                 LoadStyle();
             }
         }
@@ -57,23 +57,23 @@ namespace TelegramBotBase.Controls.Inline
 
         public int Value
         {
-            get => m_iValue;
+            get => _mIValue;
             set
             {
                 if (value > Max) return;
 
-                if (m_iValue != value) RenderNecessary = true;
-                m_iValue = value;
+                if (_mIValue != value) RenderNecessary = true;
+                _mIValue = value;
             }
         }
 
         public int Max
         {
-            get => m_iMax;
+            get => _mIMax;
             set
             {
-                if (m_iMax != value) RenderNecessary = true;
-                m_iMax = value;
+                if (_mIMax != value) RenderNecessary = true;
+                _mIMax = value;
             }
         }
 
@@ -87,23 +87,23 @@ namespace TelegramBotBase.Controls.Inline
             {
                 switch (ProgressStyle)
                 {
-                    case eProgressStyle.standard:
+                    case EProgressStyle.Standard:
 
                         return 1;
 
-                    case eProgressStyle.squares:
+                    case EProgressStyle.Squares:
 
                         return 10;
 
-                    case eProgressStyle.circles:
+                    case EProgressStyle.Circles:
 
                         return 10;
 
-                    case eProgressStyle.lines:
+                    case EProgressStyle.Lines:
 
                         return 5;
 
-                    case eProgressStyle.squaredLines:
+                    case EProgressStyle.SquaredLines:
 
                         return 5;
 
@@ -150,25 +150,25 @@ namespace TelegramBotBase.Controls.Inline
 
             switch (ProgressStyle)
             {
-                case eProgressStyle.circles:
+                case EProgressStyle.Circles:
 
                     BlockChar = "⚫️ ";
                     EmptyBlockChar = "⚪️ ";
 
                     break;
-                case eProgressStyle.squares:
+                case EProgressStyle.Squares:
 
                     BlockChar = "⬛️ ";
                     EmptyBlockChar = "⬜️ ";
 
                     break;
-                case eProgressStyle.lines:
+                case EProgressStyle.Lines:
 
                     BlockChar = "█";
                     EmptyBlockChar = "▁";
 
                     break;
-                case eProgressStyle.squaredLines:
+                case EProgressStyle.SquaredLines:
 
                     BlockChar = "▇";
                     EmptyBlockChar = "—";
@@ -177,8 +177,8 @@ namespace TelegramBotBase.Controls.Inline
                     EndChar = "]";
 
                     break;
-                case eProgressStyle.standard:
-                case eProgressStyle.custom:
+                case EProgressStyle.Standard:
+                case EProgressStyle.Custom:
 
                     BlockChar = "";
                     EmptyBlockChar = "";
@@ -199,17 +199,17 @@ namespace TelegramBotBase.Controls.Inline
 
             switch (ProgressStyle)
             {
-                case eProgressStyle.standard:
+                case EProgressStyle.Standard:
 
                     message = Value.ToString("0") + "%";
 
                     break;
 
-                case eProgressStyle.squares:
-                case eProgressStyle.circles:
-                case eProgressStyle.lines:
-                case eProgressStyle.squaredLines:
-                case eProgressStyle.custom:
+                case EProgressStyle.Squares:
+                case EProgressStyle.Circles:
+                case EProgressStyle.Lines:
+                case EProgressStyle.SquaredLines:
+                case EProgressStyle.Custom:
 
                     blocks = (int)Math.Floor((decimal)Value / Steps);
 

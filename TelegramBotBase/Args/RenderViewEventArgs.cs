@@ -4,9 +4,9 @@ namespace TelegramBotBase.Args
 {
     public class RenderViewEventArgs : EventArgs
     {
-        public RenderViewEventArgs(int ViewIndex)
+        public RenderViewEventArgs(int viewIndex)
         {
-            CurrentView = ViewIndex;
+            CurrentView = viewIndex;
         }
 
         public int CurrentView { get; set; }

@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Denpou.Builder;
+using SystemCommandsBot.Forms;
 
 namespace SystemCommandsBot
 {
-    class Program
+    internal class Program
     {
-        public static config.Config BotConfig { get; set; }
+        public static Config BotConfig { get; set; }
 
 
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-
-            BotConfig = config.Config.load();
+            BotConfig = Config.Load();
 
             if (BotConfig.ApiKey == null || BotConfig.ApiKey.Trim() == "")
             {
@@ -19,18 +21,16 @@ namespace SystemCommandsBot
                 return;
             }
 
-            var bot = new TelegramBotBase.BotBase<forms.StartForm>(BotConfig.ApiKey);
+            var bot = BotBaseBuilder.Create()
+                .QuickStart(BotConfig.ApiKey, typeof(StartForm))
+                .Build();
 
-            bot.Start();
+            await bot.Start();
 
             Console.WriteLine("Bot started");
 
             Console.ReadLine();
-
-
-            bot.Stop();
-
-
+            await bot.Stop();
         }
     }
 }

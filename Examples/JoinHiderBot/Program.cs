@@ -1,19 +1,24 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Denpou.Builder;
+using JoinHiderBot.Forms;
 
 namespace JoinHiderBot
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
+            var apiKey = Environment.GetEnvironmentVariable("API_KEY") ?? throw new Exception("API_KEY is not set");
 
-            String apiKey = "";
+            var bot = BotBaseBuilder.Create()
+                .QuickStart(apiKey, typeof(Start))
+                .Build();
 
-            var bot = new TelegramBotBase.BotBase<forms.Start>(apiKey);
-
-            bot.Start();
+            await bot.Start();
 
             Console.ReadLine();
+            await bot.Stop();
         }
     }
 }

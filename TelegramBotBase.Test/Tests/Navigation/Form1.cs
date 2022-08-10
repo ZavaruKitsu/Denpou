@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramBotBase.Base;
@@ -10,11 +8,11 @@ namespace TelegramBotBaseTest.Tests.Navigation
 {
     public class Form1 : FormBase
     {
-        Message msg = null;
+        private Message msg;
 
         public Form1()
         {
-            this.Closed += Form1_Closed;
+            Closed += Form1_Closed;
         }
 
         private async Task Form1_Closed(object sender, EventArgs e)
@@ -61,12 +59,7 @@ namespace TelegramBotBaseTest.Tests.Navigation
                     await NavigationController.PopToRootAsync();
 
                     break;
-
-
             }
-
-
-
         }
 
         public override async Task Render(MessageResult message)
@@ -80,9 +73,6 @@ namespace TelegramBotBaseTest.Tests.Navigation
             bf.AddButtonRow("Back to root", "root");
 
             msg = await Device.Send($"Choose your options (Count on stack {NavigationController.Index + 1})", bf);
-
         }
-
-
     }
 }

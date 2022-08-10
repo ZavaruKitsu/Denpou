@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TelegramBotBase.Enums
+﻿namespace TelegramBotBase.Enums
 {
     public enum eDeleteSide
     {
         /// <summary>
-        /// Delete only messages from this bot.
+        ///     Delete only messages from this bot.
         /// </summary>
         BotOnly = 0,
+
         /// <summary>
-        /// Delete only user messages.
+        ///     Delete only user messages.
         /// </summary>
         UserOnly = 1,
+
         /// <summary>
-        /// Delete all messages in this context.
+        ///     Delete all messages in this context.
         /// </summary>
         Both = 2
     }

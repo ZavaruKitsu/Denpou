@@ -1,29 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using TelegramBotBase.Args;
 using TelegramBotBase.Base;
 
 namespace TelegramBotBase.Controls.Hybrid
 {
-
     /// <summary>
-    /// This Control is for having a basic form content switching control.
+    ///     This Control is for having a basic form content switching control.
     /// </summary>
-    public abstract class MultiView : Base.ControlBase
+    public abstract class MultiView : ControlBase
     {
         /// <summary>
-        /// Index of the current View.
+        ///     Hold if the View has been rendered already.
+        /// </summary>
+        private bool _Rendered;
+
+        private int m_iSelectedViewIndex;
+
+
+        public MultiView()
+        {
+            Messages = new List<int>();
+        }
+
+        /// <summary>
+        ///     Index of the current View.
         /// </summary>
         public int SelectedViewIndex
         {
-            get
-            {
-                return m_iSelectedViewIndex;
-            }
+            get => m_iSelectedViewIndex;
             set
             {
                 m_iSelectedViewIndex = value;
@@ -34,20 +39,7 @@ namespace TelegramBotBase.Controls.Hybrid
             }
         }
 
-        private int m_iSelectedViewIndex = 0;
-
-        /// <summary>
-        /// Hold if the View has been rendered already.
-        /// </summary>
-        private bool _Rendered = false;
-
-        private List<int> Messages { get; set; }
-
-
-        public MultiView()
-        {
-            Messages = new List<int>();
-        }
+        private List<int> Messages { get; }
 
 
         private void Device_MessageSent(object sender, MessageSentEventArgs e)
@@ -55,7 +47,7 @@ namespace TelegramBotBase.Controls.Hybrid
             if (e.Origin == null || !e.Origin.IsSubclassOf(typeof(MultiView)))
                 return;
 
-            this.Messages.Add(e.MessageId);
+            Messages.Add(e.MessageId);
         }
 
         public override void Init()
@@ -77,46 +69,39 @@ namespace TelegramBotBase.Controls.Hybrid
 
             await CleanUpView();
 
-            await RenderView(new RenderViewEventArgs(this.SelectedViewIndex));
+            await RenderView(new RenderViewEventArgs(SelectedViewIndex));
 
             _Rendered = true;
         }
 
 
         /// <summary>
-        /// Will get invoked on rendering the current controls view.
+        ///     Will get invoked on rendering the current controls view.
         /// </summary>
         /// <param name="e"></param>
         public virtual async Task RenderView(RenderViewEventArgs e)
         {
-
-
         }
 
-        async Task CleanUpView()
+        private async Task CleanUpView()
         {
-
             var tasks = new List<Task>();
 
-            foreach (var msg in this.Messages)
-            {
-                tasks.Add(this.Device.DeleteMessage(msg));
-            }
+            foreach (var msg in Messages) tasks.Add(Device.DeleteMessage(msg));
 
             await Task.WhenAll(tasks);
 
-            this.Messages.Clear();
-
+            Messages.Clear();
         }
 
         /// <summary>
-        /// Forces render of control contents.
+        ///     Forces render of control contents.
         /// </summary>
         public async Task ForceRender()
         {
             await CleanUpView();
 
-            await RenderView(new RenderViewEventArgs(this.SelectedViewIndex));
+            await RenderView(new RenderViewEventArgs(SelectedViewIndex));
 
             _Rendered = true;
         }
@@ -127,6 +112,5 @@ namespace TelegramBotBase.Controls.Hybrid
 
             await CleanUpView();
         }
-
     }
 }

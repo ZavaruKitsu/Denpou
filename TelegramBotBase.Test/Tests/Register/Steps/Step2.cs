@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
 
@@ -13,7 +9,7 @@ namespace TelegramBotBaseTest.Tests.Register.Steps
         public Data UserData { get; set; }
 
 
-        public async override Task Load(MessageResult message)
+        public override async Task Load(MessageResult message)
         {
             if (message.Handled)
                 return;
@@ -21,19 +17,18 @@ namespace TelegramBotBaseTest.Tests.Register.Steps
             if (message.MessageText.Trim() == "")
                 return;
 
-            if (this.UserData.Lastname == null)
+            if (UserData.Lastname == null)
             {
-                this.UserData.Lastname = message.MessageText;
-                return;
+                UserData.Lastname = message.MessageText;
             }
         }
 
 
-        public async override Task Render(MessageResult message)
+        public override async Task Render(MessageResult message)
         {
-            if (this.UserData.Lastname == null)
+            if (UserData.Lastname == null)
             {
-                await this.Device.Send("Please sent your lastname:");
+                await Device.Send("Please sent your lastname:");
                 return;
             }
 
@@ -41,10 +36,9 @@ namespace TelegramBotBaseTest.Tests.Register.Steps
 
             var step3 = new Step3();
 
-            step3.UserData = this.UserData;
+            step3.UserData = UserData;
 
-            await this.NavigateTo(step3);
+            await NavigateTo(step3);
         }
-
     }
 }

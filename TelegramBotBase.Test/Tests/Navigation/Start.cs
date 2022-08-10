@@ -1,30 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
-using TelegramBotBase.Form.Navigation;
 
 namespace TelegramBotBaseTest.Tests.Navigation
 {
     public class Start : FormBase
     {
-
-        Message msg = null;
-
-        public Start()
-        {
-
-        }
+        private Message msg;
 
 
         public override async Task Load(MessageResult message)
         {
-
-
-
         }
 
         public override async Task Action(MessageResult message)
@@ -72,7 +59,6 @@ namespace TelegramBotBaseTest.Tests.Navigation
 
                     break;
             }
-
         }
 
         public override async Task Render(MessageResult message)
@@ -83,9 +69,6 @@ namespace TelegramBotBaseTest.Tests.Navigation
             bf.AddButtonRow("No", "no");
 
             msg = await Device.Send("Open controller?", bf);
-
-
         }
-
     }
 }

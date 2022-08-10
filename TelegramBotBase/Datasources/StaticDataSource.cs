@@ -1,32 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using TelegramBotBase.Interfaces;
 
 namespace TelegramBotBase.Datasources
 {
-    public class StaticDataSource<T> : Interfaces.IDataSource<T>
+    public class StaticDataSource<T> : IDataSource<T>
     {
-        List<T> Data { get; set; }
-
         public StaticDataSource()
         {
-
         }
 
         public StaticDataSource(List<T> data)
         {
-            this.Data = data;
+            Data = data;
         }
 
+        private List<T> Data { get; }
 
-        public int Count
-        {
-            get
-            {
-                return Data.Count;
-            }
-        }
+
+        public int Count => Data.Count;
 
         public T ItemAt(int index)
         {

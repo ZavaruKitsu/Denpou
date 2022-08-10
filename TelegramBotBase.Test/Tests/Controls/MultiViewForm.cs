@@ -1,29 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using TelegramBotBase.Base;
+﻿using System.Threading.Tasks;
+using TelegramBotBase.Args;
 using TelegramBotBase.Controls.Hybrid;
+using TelegramBotBase.Enums;
 using TelegramBotBase.Form;
+using TelegramBotBaseTest.Tests.Controls.Subclass;
 
 namespace TelegramBotBaseTest.Tests.Controls
 {
     public class MultiViewForm : AutoCleanForm
     {
+        private ButtonGrid bg;
 
-        Subclass.MultiViewTest mvt = null;
-
-        ButtonGrid bg = null;
+        private MultiViewTest mvt;
 
         public MultiViewForm()
         {
-            this.DeleteMode = TelegramBotBase.Enums.eDeleteMode.OnLeavingForm;
-            this.Init += MultiViewForm_Init;
+            DeleteMode = eDeleteMode.OnLeavingForm;
+            Init += MultiViewForm_Init;
         }
 
-        private async Task MultiViewForm_Init(object sender, TelegramBotBase.Args.InitEventArgs e)
+        private async Task MultiViewForm_Init(object sender, InitEventArgs e)
         {
-            mvt = new Subclass.MultiViewTest();
+            mvt = new MultiViewTest();
 
             AddControl(mvt);
 
@@ -31,13 +29,13 @@ namespace TelegramBotBaseTest.Tests.Controls
             bg.ButtonsForm = new ButtonForm();
             bg.ButtonsForm.AddButtonRow("Back", "$back$");
             bg.ButtonClicked += Bg_ButtonClicked;
-            bg.KeyboardType = TelegramBotBase.Enums.eKeyboardType.ReplyKeyboard;
+            bg.KeyboardType = eKeyboardType.ReplyKeyboard;
             AddControl(bg);
         }
 
-        private async Task Bg_ButtonClicked(object sender, TelegramBotBase.Args.ButtonClickedEventArgs e)
+        private async Task Bg_ButtonClicked(object sender, ButtonClickedEventArgs e)
         {
-            switch(e.Button.Value)
+            switch (e.Button.Value)
             {
                 case "$back$":
 
@@ -47,7 +45,5 @@ namespace TelegramBotBaseTest.Tests.Controls
                     break;
             }
         }
-
-
     }
 }

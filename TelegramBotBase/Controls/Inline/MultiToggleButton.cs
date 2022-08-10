@@ -1,48 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TelegramBotBase.Base;
 using TelegramBotBase.Form;
+using TelegramBotBase.Localizations;
 
 namespace TelegramBotBase.Controls.Inline
 {
     public class MultiToggleButton : ControlBase
     {
-        /// <summary>
-        /// This contains the selected icon.
-        /// </summary>
-        public String SelectedIcon { get; set; } = Localizations.Default.Language["MultiToggleButton_SelectedIcon"];
-
-        /// <summary>
-        /// This will appear on the ConfirmAction message (if not empty)
-        /// </summary>
-        public String ChangedString { get; set; } = Localizations.Default.Language["MultiToggleButton_Changed"];
-
-        /// <summary>
-        /// This holds the title of the control.
-        /// </summary>
-        public String Title { get; set; } = Localizations.Default.Language["MultiToggleButton_Title"];
-
-        public int? MessageId { get; set; }
-
-        private bool RenderNecessary = true;
-
         private static readonly object __evToggled = new object();
 
         private readonly EventHandlerList Events = new EventHandlerList();
 
-        /// <summary>
-        /// This will hold all options available.
-        /// </summary>
-        public List<ButtonBase> Options { get; set; }
-
-        /// <summary>
-        /// This will set if an empty selection (null) is allowed.
-        /// </summary>
-        public bool AllowEmptySelection { get; set; } = true;
+        private bool RenderNecessary = true;
 
 
         public MultiToggleButton()
@@ -50,29 +22,52 @@ namespace TelegramBotBase.Controls.Inline
             Options = new List<ButtonBase>();
         }
 
+        /// <summary>
+        ///     This contains the selected icon.
+        /// </summary>
+        public string SelectedIcon { get; set; } = Default.Language["MultiToggleButton_SelectedIcon"];
+
+        /// <summary>
+        ///     This will appear on the ConfirmAction message (if not empty)
+        /// </summary>
+        public string ChangedString { get; set; } = Default.Language["MultiToggleButton_Changed"];
+
+        /// <summary>
+        ///     This holds the title of the control.
+        /// </summary>
+        public string Title { get; set; } = Default.Language["MultiToggleButton_Title"];
+
+        public int? MessageId { get; set; }
+
+        /// <summary>
+        ///     This will hold all options available.
+        /// </summary>
+        public List<ButtonBase> Options { get; set; }
+
+        /// <summary>
+        ///     This will set if an empty selection (null) is allowed.
+        /// </summary>
+        public bool AllowEmptySelection { get; set; } = true;
+
+        public ButtonBase SelectedOption { get; set; }
+
         public event EventHandler Toggled
         {
-            add
-            {
-                this.Events.AddHandler(__evToggled, value);
-            }
-            remove
-            {
-                this.Events.RemoveHandler(__evToggled, value);
-            }
+            add => Events.AddHandler(__evToggled, value);
+            remove => Events.RemoveHandler(__evToggled, value);
         }
 
         public void OnToggled(EventArgs e)
         {
-            (this.Events[__evToggled] as EventHandler)?.Invoke(this, e);
+            (Events[__evToggled] as EventHandler)?.Invoke(this, e);
         }
 
-        public override async Task Action(MessageResult result, String value = null)
+        public override async Task Action(MessageResult result, string value = null)
         {
             if (result.Handled)
                 return;
 
-            await result.ConfirmAction(this.ChangedString);
+            await result.ConfirmAction(ChangedString);
 
             switch (value ?? "unknown")
             {
@@ -82,20 +77,17 @@ namespace TelegramBotBase.Controls.Inline
 
                     if (s[0] == "check" && s.Length > 1)
                     {
-                        int index = 0;
-                        if (!int.TryParse(s[1], out index))
-                        {
-                            return;
-                        }
+                        var index = 0;
+                        if (!int.TryParse(s[1], out index)) return;
 
-                        if(SelectedOption== null || SelectedOption != this.Options[index])
+                        if (SelectedOption == null || SelectedOption != Options[index])
                         {
-                            this.SelectedOption = this.Options[index];
+                            SelectedOption = Options[index];
                             OnToggled(new EventArgs());
                         }
-                        else if(this.AllowEmptySelection)
+                        else if (AllowEmptySelection)
                         {
-                            this.SelectedOption = null;
+                            SelectedOption = null;
                             OnToggled(new EventArgs());
                         }
 
@@ -108,11 +100,9 @@ namespace TelegramBotBase.Controls.Inline
                     RenderNecessary = false;
 
                     break;
-
             }
 
             result.Handled = true;
-
         }
 
         public override async Task Render(MessageResult result)
@@ -123,10 +113,10 @@ namespace TelegramBotBase.Controls.Inline
             var bf = new ButtonForm(this);
 
             var lst = new List<ButtonBase>();
-            foreach (var o in this.Options)
+            foreach (var o in Options)
             {
-                var index = this.Options.IndexOf(o);
-                if (o == this.SelectedOption)
+                var index = Options.IndexOf(o);
+                if (o == SelectedOption)
                 {
                     lst.Add(new ButtonBase(SelectedIcon + " " + o.Text, "check$" + index));
                     continue;
@@ -137,28 +127,17 @@ namespace TelegramBotBase.Controls.Inline
 
             bf.AddButtonRow(lst);
 
-            if (this.MessageId != null)
+            if (MessageId != null)
             {
-                var m = await this.Device.Edit(this.MessageId.Value, this.Title, bf);
+                var m = await Device.Edit(MessageId.Value, Title, bf);
             }
             else
             {
-                var m = await this.Device.Send(this.Title, bf, disableNotification: true);
-                if (m != null)
-                {
-                    this.MessageId = m.MessageId;
-                }
+                var m = await Device.Send(Title, bf, disableNotification: true);
+                if (m != null) MessageId = m.MessageId;
             }
 
-            this.RenderNecessary = false;
-
-
+            RenderNecessary = false;
         }
-
-        public ButtonBase SelectedOption
-        {
-            get; set;
-        }
-
     }
 }

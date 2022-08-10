@@ -2,46 +2,34 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using TelegramBotBase.Args;
 using TelegramBotBase.Attributes;
 using TelegramBotBase.Base;
 using TelegramBotBase.Interfaces;
+using TelegramBotBase.Tools;
 
 namespace TelegramBotBase.Form.Navigation
 {
     [DebuggerDisplay("{Index+1} Forms")]
     public class NavigationController : FormBase, IStateForm
     {
-
-        [SaveState]
-        private List<FormBase> History { get; set; }
-
-        [SaveState]
-        public int Index { get; set; }
-
-        /// <summary>
-        /// Will replace the controller when poping a form to the root form.
-        /// </summary>
-        [SaveState]
-        public bool ForceCleanupOnLastPop { get; set; }
-
         public NavigationController()
         {
             History = new List<FormBase>();
             Index = -1;
             ForceCleanupOnLastPop = true;
 
-            this.Init += NavigationController_Init;
-            this.Opened += NavigationController_Opened;
-            this.Closed += NavigationController_Closed;
+            Init += NavigationController_Init;
+            Opened += NavigationController_Opened;
+            Closed += NavigationController_Closed;
         }
 
         public NavigationController(FormBase startForm, params FormBase[] forms) : this()
         {
-            this.Client = startForm.Client;
-            this.Device = startForm.Device;
+            Client = startForm.Client;
+            Device = startForm.Device;
             startForm.NavigationController = this;
 
             History.Add(startForm);
@@ -54,7 +42,130 @@ namespace TelegramBotBase.Form.Navigation
             }
         }
 
-        private async Task NavigationController_Init(object sender, Args.InitEventArgs e)
+        [SaveState] private List<FormBase> History { get; }
+
+        [SaveState] public int Index { get; set; }
+
+        /// <summary>
+        ///     Will replace the controller when poping a form to the root form.
+        /// </summary>
+        [SaveState]
+        public bool ForceCleanupOnLastPop { get; set; }
+
+        /// <summary>
+        ///     Returns the current form from the stack.
+        /// </summary>
+        public FormBase CurrentForm
+        {
+            get
+            {
+                if (History.Count == 0)
+                    return null;
+
+                return History[Index];
+            }
+        }
+
+
+        public void LoadState(LoadStateEventArgs e)
+        {
+            if (e.Get("$controller.history.count") == null)
+                return;
+
+
+            var historyCount = e.GetInt("$controller.history.count");
+
+            for (var i = 0; i < historyCount; i++)
+            {
+                var c = e.GetObject($"$controller.history[{i}]") as Dictionary<string, object>;
+
+
+                var qname = e.Get($"$controller.history[{i}].type");
+
+                if (qname == null)
+                    continue;
+
+                var t = Type.GetType(qname);
+                if (t == null || !t.IsSubclassOf(typeof(FormBase))) continue;
+
+                var form = t.GetConstructor(new Type[] { })?.Invoke(new object[] { }) as FormBase;
+
+                //No default constructor, fallback
+                if (form == null) continue;
+
+                var properties = c.Where(a => a.Key.StartsWith("$"));
+
+                var fields = form.GetType()
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Where(a => a.GetCustomAttributes(typeof(SaveState), true).Length != 0).ToList();
+
+                foreach (var p in properties)
+                {
+                    var f = fields.FirstOrDefault(a => a.Name == p.Key.Substring(1));
+                    if (f == null)
+                        continue;
+
+                    try
+                    {
+                        if (f.PropertyType.IsEnum)
+                        {
+                            var ent = Enum.Parse(f.PropertyType, p.Value.ToString());
+
+                            f.SetValue(form, ent);
+
+                            continue;
+                        }
+
+
+                        f.SetValue(form, p.Value);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        Conversion.CustomConversionChecks(form, p, f);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                form.Device = Device;
+                form.Client = Client;
+                form.NavigationController = this;
+
+                form.OnInit(new InitEventArgs());
+
+                History.Add(form);
+            }
+        }
+
+        public void SaveState(SaveStateEventArgs e)
+        {
+            e.Set("$controller.history.count", History.Count.ToString());
+
+            var i = 0;
+            foreach (var form in History)
+            {
+                var fields = form.GetType()
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Where(a => a.GetCustomAttributes(typeof(SaveState), true).Length != 0).ToList();
+
+                var dt = new Dictionary<string, object>();
+                foreach (var f in fields)
+                {
+                    var val = f.GetValue(form);
+
+                    dt.Add("$" + f.Name, val);
+                }
+
+                e.Set($"$controller.history[{i}].type", form.GetType().AssemblyQualifiedName);
+
+                e.SetObject($"$controller.history[{i}]", dt);
+
+                i++;
+            }
+        }
+
+        private async Task NavigationController_Init(object sender, InitEventArgs e)
         {
             if (CurrentForm == null)
                 return;
@@ -79,9 +190,8 @@ namespace TelegramBotBase.Form.Navigation
         }
 
 
-
         /// <summary>
-        /// Remove the current active form on the stack.
+        ///     Remove the current active form on the stack.
         /// </summary>
         /// <returns></returns>
         public virtual async Task PopAsync()
@@ -104,7 +214,7 @@ namespace TelegramBotBase.Form.Navigation
             {
                 var last_form = History[0];
                 last_form.NavigationController = null;
-                await this.NavigateTo(last_form);
+                await NavigateTo(last_form);
                 return;
             }
 
@@ -116,29 +226,26 @@ namespace TelegramBotBase.Form.Navigation
         }
 
         /// <summary>
-        /// Pop's through all forms back to the root form.
+        ///     Pop's through all forms back to the root form.
         /// </summary>
         /// <returns></returns>
         public virtual async Task PopToRootAsync()
         {
-            while (Index > 0)
-            {
-                await PopAsync();
-            }
+            while (Index > 0) await PopAsync();
         }
 
         /// <summary>
-        /// Pushing the given form to the stack and renders it.
+        ///     Pushing the given form to the stack and renders it.
         /// </summary>
         /// <param name="form"></param>
         /// <returns></returns>
         public virtual async Task PushAsync(FormBase form, params object[] args)
         {
-            form.Client = this.Client;
-            form.Device = this.Device;
+            form.Client = Client;
+            form.Device = Device;
             form.NavigationController = this;
 
-            this.History.Add(form);
+            History.Add(form);
             Index++;
 
             Device.FormSwitched = true;
@@ -152,8 +259,8 @@ namespace TelegramBotBase.Form.Navigation
         }
 
         /// <summary>
-        /// Pops the current form and pushes a new one.
-        /// Will help to remove forms so you can not navigate back to them.
+        ///     Pops the current form and pushes a new one.
+        ///     Will help to remove forms so you can not navigate back to them.
         /// </summary>
         /// <param name="form"></param>
         /// <param name="args"></param>
@@ -165,130 +272,9 @@ namespace TelegramBotBase.Form.Navigation
             await PushAsync(form, args);
         }
 
-        /// <summary>
-        /// Returns the current form from the stack.
-        /// </summary>
-        public FormBase CurrentForm
-        {
-            get
-            {
-                if (this.History.Count == 0)
-                    return null;
-
-                return this.History[Index];
-            }
-        }
-
         public List<FormBase> GetAllForms()
         {
             return History.ToList();
-        }
-
-
-        public void LoadState(LoadStateEventArgs e)
-        {
-            if (e.Get("$controller.history.count") == null)
-                return;
-
-
-            int historyCount = e.GetInt("$controller.history.count");
-
-            for (int i = 0; i < historyCount; i++)
-            {
-
-                var c = e.GetObject($"$controller.history[{i}]") as Dictionary<String, object>;
-
-
-
-                var qname = e.Get($"$controller.history[{i}].type");
-
-                if (qname == null)
-                    continue;
-
-                Type t = Type.GetType(qname.ToString());
-                if (t == null || !t.IsSubclassOf(typeof(FormBase)))
-                {
-                    continue;
-                }
-
-                var form = t.GetConstructor(new Type[] { })?.Invoke(new object[] { }) as FormBase;
-
-                //No default constructor, fallback
-                if (form == null)
-                {
-                    continue;
-                }
-
-                var properties = c.Where(a => a.Key.StartsWith("$"));
-
-                var fields = form.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic).Where(a => a.GetCustomAttributes(typeof(SaveState), true).Length != 0).ToList();
-
-                foreach (var p in properties)
-                {
-                    var f = fields.FirstOrDefault(a => a.Name == p.Key.Substring(1));
-                    if (f == null)
-                        continue;
-
-                    try
-                    {
-                        if (f.PropertyType.IsEnum)
-                        {
-                            var ent = Enum.Parse(f.PropertyType, p.Value.ToString());
-
-                            f.SetValue(form, ent);
-
-                            continue;
-                        }
-
-
-                        f.SetValue(form, p.Value);
-                    }
-                    catch (ArgumentException ex)
-                    {
-
-                        Tools.Conversion.CustomConversionChecks(form, p, f);
-
-                    }
-                    catch
-                    {
-
-                    }
-                }
-
-                form.Device = this.Device;
-                form.Client = this.Client;
-                form.NavigationController = this;
-
-                form.OnInit(new InitEventArgs());
-
-                this.History.Add(form);
-            }
-
-        }
-
-        public void SaveState(SaveStateEventArgs e)
-        {
-            e.Set("$controller.history.count", History.Count.ToString());
-
-            int i = 0;
-            foreach (var form in History)
-            {
-                var fields = form.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic).Where(a => a.GetCustomAttributes(typeof(SaveState), true).Length != 0).ToList();
-
-                var dt = new Dictionary<String, object>();
-                foreach (var f in fields)
-                {
-                    var val = f.GetValue(form);
-
-                    dt.Add("$" + f.Name, val);
-                }
-
-                e.Set($"$controller.history[{i}].type", form.GetType().AssemblyQualifiedName);
-
-                e.SetObject($"$controller.history[{i}]", dt);
-
-                i++;
-            }
         }
 
 
@@ -318,7 +304,6 @@ namespace TelegramBotBase.Form.Navigation
         {
             await CurrentForm.Action(message);
         }
-
 
 
         public override async Task Edited(MessageResult message)
@@ -351,8 +336,6 @@ namespace TelegramBotBase.Form.Navigation
             await CurrentForm.SentData(message);
         }
 
-
         #endregion
-
     }
 }

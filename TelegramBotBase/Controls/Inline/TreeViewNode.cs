@@ -1,41 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TelegramBotBase.Controls.Inline
 {
     public class TreeViewNode
     {
-        public String Text { get; set; }
-
-        public String Value { get; set; }
-
-        public String Url { get; set; }
-
-        public List<TreeViewNode> ChildNodes { get; set; } = new List<TreeViewNode>();
-
-        public TreeViewNode ParentNode { get; set; }
-
-        public TreeViewNode(String Text, String Value)
+        public TreeViewNode(string Text, string Value)
         {
             this.Text = Text;
             this.Value = Value;
         }
 
-        public TreeViewNode(String Text, String Value, String Url) : this(Text, Value)
+        public TreeViewNode(string Text, string Value, string Url) : this(Text, Value)
         {
             this.Url = Url;
         }
 
-        public TreeViewNode(String Text, String Value, params TreeViewNode[] childnodes) : this(Text, Value)
+        public TreeViewNode(string Text, string Value, params TreeViewNode[] childnodes) : this(Text, Value)
         {
-            foreach(var c in childnodes)
-            {
-                AddNode(c);
-            }
+            foreach (var c in childnodes) AddNode(c);
         }
+
+        public string Text { get; set; }
+
+        public string Value { get; set; }
+
+        public string Url { get; set; }
+
+        public List<TreeViewNode> ChildNodes { get; set; } = new List<TreeViewNode>();
+
+        public TreeViewNode ParentNode { get; set; }
 
 
         public void AddNode(TreeViewNode node)
@@ -44,22 +38,22 @@ namespace TelegramBotBase.Controls.Inline
             ChildNodes.Add(node);
         }
 
-        public TreeViewNode FindNodeByValue(String Value)
+        public TreeViewNode FindNodeByValue(string Value)
         {
-            return this.ChildNodes.FirstOrDefault(a => a.Value == Value);
+            return ChildNodes.FirstOrDefault(a => a.Value == Value);
         }
 
-        public String GetPath()
+        public string GetPath()
         {
-            String s = "\\" + this.Value;
+            var s = "\\" + Value;
             var p = this;
             while (p.ParentNode != null)
             {
                 s = "\\" + p.ParentNode.Value + s;
-                p =  p.ParentNode;
+                p = p.ParentNode;
             }
+
             return s;
         }
-
     }
 }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TelegramBotBase.Localizations
+﻿namespace TelegramBotBase.Localizations
 {
     public class German : Localization
     {
-        public German() : base()
+        public German()
         {
             Values["Language"] = "Deutsch (German)";
             Values["ButtonGrid_Title"] = "Menü";
@@ -14,7 +10,8 @@ namespace TelegramBotBase.Localizations
             Values["ButtonGrid_PreviousPage"] = "◀️";
             Values["ButtonGrid_NextPage"] = "▶️";
             Values["ButtonGrid_CurrentPage"] = "Seite {0} von {1}";
-            Values["ButtonGrid_SearchFeature"] = "💡 Sende eine Nachricht um die Liste zu filtern. Klicke die 🔍 um den Filter zurückzusetzen.";
+            Values["ButtonGrid_SearchFeature"] =
+                "💡 Sende eine Nachricht um die Liste zu filtern. Klicke die 🔍 um den Filter zurückzusetzen.";
             Values["ButtonGrid_Back"] = "Zurück";
             Values["ButtonGrid_CheckAll"] = "Alle auswählen";
             Values["ButtonGrid_UncheckAll"] = "Keine auswählen";
@@ -35,7 +32,5 @@ namespace TelegramBotBase.Localizations
             Values["PromptDialog_Back"] = "Zurück";
             Values["ToggleButton_Changed"] = "Einstellung geändert";
         }
-
-
     }
 }

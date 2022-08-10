@@ -1,33 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace TelegramBotBase.Tools
 {
     public static class Console
     {
-        [DllImport("Kernel32")]
-        private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
+        private static EventHandler _handler;
 
-        private delegate bool EventHandler(CtrlType sig);
-        static EventHandler _handler;
-
-        static List<Action> Actions = new List<Action>();
-
-        enum CtrlType
-        {
-            CTRL_C_EVENT = 0,
-            CTRL_BREAK_EVENT = 1,
-            CTRL_CLOSE_EVENT = 2,
-            CTRL_LOGOFF_EVENT = 5,
-            CTRL_SHUTDOWN_EVENT = 6
-        }
+        private static readonly List<Action> Actions = new List<Action>();
 
         static Console()
         {
-
         }
+
+        [DllImport("Kernel32")]
+        private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
 
         public static void SetHandler(Action action)
         {
@@ -36,7 +24,7 @@ namespace TelegramBotBase.Tools
             if (_handler != null)
                 return;
 
-            _handler += new EventHandler(Handler);
+            _handler += Handler;
             SetConsoleCtrlHandler(_handler, true);
         }
 
@@ -49,10 +37,7 @@ namespace TelegramBotBase.Tools
                 case CtrlType.CTRL_SHUTDOWN_EVENT:
                 case CtrlType.CTRL_CLOSE_EVENT:
 
-                    foreach (var a in Actions)
-                    {
-                        a();
-                    }
+                    foreach (var a in Actions) a();
 
                     return false;
 
@@ -61,5 +46,15 @@ namespace TelegramBotBase.Tools
             }
         }
 
+        private delegate bool EventHandler(CtrlType sig);
+
+        private enum CtrlType
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT = 1,
+            CTRL_CLOSE_EVENT = 2,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT = 6
+        }
     }
 }

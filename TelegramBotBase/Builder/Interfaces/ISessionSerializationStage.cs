@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TelegramBotBase.Interfaces;
+﻿using TelegramBotBase.Interfaces;
 
 namespace TelegramBotBase.Builder.Interfaces
 {
     public interface ISessionSerializationStage
     {
         /// <summary>
-        /// Do not uses serialization.
+        ///     Do not uses serialization.
         /// </summary>
         /// <returns></returns>
         ILanguageSelectionStage NoSerialization();
 
 
         /// <summary>
-        /// Sets the state machine for serialization.
+        ///     Sets the state machine for serialization.
         /// </summary>
         /// <param name="machine"></param>
         /// <returns></returns>
@@ -23,27 +20,26 @@ namespace TelegramBotBase.Builder.Interfaces
 
 
         /// <summary>
-        /// Using the complex version of .Net JSON, which can serialize all objects.
+        ///     Using the complex version of .Net JSON, which can serialize all objects.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        ILanguageSelectionStage UseJSON(String path);
+        ILanguageSelectionStage UseJSON(string path);
 
 
         /// <summary>
-        /// Use the easy version of .Net JSON, which can serialize basic types, but not generics and others.
+        ///     Use the easy version of .Net JSON, which can serialize basic types, but not generics and others.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        ILanguageSelectionStage UseSimpleJSON(String path);
+        ILanguageSelectionStage UseSimpleJSON(string path);
 
 
         /// <summary>
-        /// Uses the XML serializer for session serialization.
+        ///     Uses the XML serializer for session serialization.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        ILanguageSelectionStage UseXML(String path);
-
+        ILanguageSelectionStage UseXML(string path);
     }
 }

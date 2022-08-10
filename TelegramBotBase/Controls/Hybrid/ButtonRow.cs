@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using TelegramBotBase.Form;
 
 namespace TelegramBotBase.Controls.Hybrid
@@ -12,13 +9,10 @@ namespace TelegramBotBase.Controls.Hybrid
     [DebuggerDisplay("{Count} columns")]
     public class ButtonRow
     {
-
-        List<ButtonBase> __buttons = new List<ButtonBase>();
+        private List<ButtonBase> __buttons = new List<ButtonBase>();
 
         public ButtonRow()
         {
-
-
         }
 
         public ButtonRow(params ButtonBase[] buttons)
@@ -27,21 +21,9 @@ namespace TelegramBotBase.Controls.Hybrid
         }
 
 
-        public ButtonBase this[int index]
-        {
-            get
-            {
-                return __buttons[index];
-            }
-        }
+        public ButtonBase this[int index] => __buttons[index];
 
-        public int Count
-        {
-            get
-            {
-                return __buttons.Count;
-            }
-        }
+        public int Count => __buttons.Count;
 
         public void Add(ButtonBase button)
         {
@@ -73,7 +55,7 @@ namespace TelegramBotBase.Controls.Hybrid
             return __buttons.ToList();
         }
 
-        public bool Matches(String text, bool useText = true)
+        public bool Matches(string text, bool useText = true)
         {
             foreach (var b in __buttons)
             {
@@ -83,16 +65,17 @@ namespace TelegramBotBase.Controls.Hybrid
                 if (!useText && b.Value.Equals(text, StringComparison.InvariantCultureIgnoreCase))
                     return true;
             }
+
             return false;
         }
 
         /// <summary>
-        /// Returns the button inside of the row which matches.
+        ///     Returns the button inside of the row which matches.
         /// </summary>
         /// <param name="text"></param>
         /// <param name="useText"></param>
         /// <returns></returns>
-        public ButtonBase GetButtonMatch(String text, bool useText = true)
+        public ButtonBase GetButtonMatch(string text, bool useText = true)
         {
             foreach (var b in __buttons)
             {
@@ -101,12 +84,13 @@ namespace TelegramBotBase.Controls.Hybrid
                 if (!useText && b.Value.Equals(text, StringComparison.InvariantCultureIgnoreCase))
                     return b;
             }
+
             return null;
         }
 
         public static implicit operator ButtonRow(List<ButtonBase> list)
         {
-            return new ButtonRow() { __buttons = list };
+            return new ButtonRow { __buttons = list };
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Telegram.Bot.Types;
 
 namespace TelegramBotBase.Commands
@@ -8,44 +6,44 @@ namespace TelegramBotBase.Commands
     public static class Extensions
     {
         /// <summary>
-        /// Adding the default /start command with a description.
+        ///     Adding the default /start command with a description.
         /// </summary>
         /// <param name="cmds"></param>
         /// <param name="description"></param>
-        public static void Start(this List<BotCommand> cmds, String description)
+        public static void Start(this List<BotCommand> cmds, string description)
         {
-            cmds.Add(new BotCommand() { Command = "start", Description = description });
+            cmds.Add(new BotCommand { Command = "start", Description = description });
         }
 
         /// <summary>
-        /// Adding the default /help command with a description.
+        ///     Adding the default /help command with a description.
         /// </summary>
         /// <param name="cmds"></param>
         /// <param name="description"></param>
-        public static void Help(this List<BotCommand> cmds, String description)
+        public static void Help(this List<BotCommand> cmds, string description)
         {
-            cmds.Add(new BotCommand() { Command = "help", Description = description });
+            cmds.Add(new BotCommand { Command = "help", Description = description });
         }
 
         /// <summary>
-        /// Adding the default /settings command with a description.
+        ///     Adding the default /settings command with a description.
         /// </summary>
         /// <param name="cmds"></param>
         /// <param name="description"></param>
-        public static void Settings(this List<BotCommand> cmds, String description)
+        public static void Settings(this List<BotCommand> cmds, string description)
         {
-            cmds.Add(new BotCommand() { Command = "settings", Description = description });
+            cmds.Add(new BotCommand { Command = "settings", Description = description });
         }
 
         /// <summary>
-        /// Adding the command with a description.
+        ///     Adding the command with a description.
         /// </summary>
         /// <param name="cmds"></param>
         /// <param name="command"></param>
         /// <param name="description"></param>
-        public static void Add(this List<BotCommand> cmds, String command, String description)
+        public static void Add(this List<BotCommand> cmds, string command, string description)
         {
-            cmds.Add(new BotCommand() { Command = command, Description = description });
+            cmds.Add(new BotCommand { Command = command, Description = description });
         }
     }
 }

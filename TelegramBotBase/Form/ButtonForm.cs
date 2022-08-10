@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBotBase.Base;
 using TelegramBotBase.Controls.Hybrid;
@@ -10,11 +8,20 @@ using TelegramBotBase.Controls.Hybrid;
 namespace TelegramBotBase.Form
 {
     /// <summary>
-    /// Base class for an buttons array
+    ///     Base class for an buttons array
     /// </summary>
     public class ButtonForm
     {
-        List<ButtonRow> Buttons = new List<ButtonRow>();
+        private readonly List<ButtonRow> Buttons = new List<ButtonRow>();
+
+        public ButtonForm()
+        {
+        }
+
+        public ButtonForm(ControlBase control)
+        {
+            DependencyControl = control;
+        }
 
 
         public IReplyMarkup Markup { get; set; }
@@ -22,49 +29,35 @@ namespace TelegramBotBase.Form
         public ControlBase DependencyControl { get; set; }
 
         /// <summary>
-        /// Contains the number of rows.
+        ///     Contains the number of rows.
         /// </summary>
-        public int Rows
-        {
-            get
-            {
-                return Buttons.Count;
-            }
-        }
+        public int Rows => Buttons.Count;
 
         /// <summary>
-        /// Contains the highest number of columns in an row.
+        ///     Contains the highest number of columns in an row.
         /// </summary>
         public int Cols
         {
-            get
-            {
-                return Buttons.Select(a => a.Count).OrderByDescending(a => a).FirstOrDefault();
-            }
+            get { return Buttons.Select(a => a.Count).OrderByDescending(a => a).FirstOrDefault(); }
         }
 
 
-        public ButtonRow this[int row]
+        public ButtonRow this[int row] => Buttons[row];
+
+        public int Count
         {
             get
             {
-                return Buttons[row];
+                if (Buttons.Count == 0)
+                    return 0;
+
+                return Buttons.Select(a => a.ToArray()).ToList().Aggregate((a, b) => a.Union(b).ToArray()).Length;
             }
         }
 
-        public ButtonForm()
+        public void AddButtonRow(string Text, string Value, string Url = null)
         {
-
-        }
-
-        public ButtonForm(ControlBase control)
-        {
-            this.DependencyControl = control;
-        }
-
-        public void AddButtonRow(String Text, String Value, String Url = null)
-        {
-            Buttons.Add(new List<ButtonBase>() { new ButtonBase(Text, Value, Url) });
+            Buttons.Add(new List<ButtonBase> { new ButtonBase(Text, Value, Url) });
         }
 
         //public void AddButtonRow(ButtonRow row)
@@ -104,52 +97,37 @@ namespace TelegramBotBase.Form
 
         public static T[][] SplitTo<T>(IEnumerable<T> items, int itemsPerRow = 2)
         {
-            T[][] splitted = default(T[][]);
+            var splitted = default(T[][]);
 
             try
             {
                 var t = items.Select((a, index) => new { a, index })
-                             .GroupBy(a => a.index / itemsPerRow)
-                             .Select(a => a.Select(b => b.a).ToArray()).ToArray();
+                    .GroupBy(a => a.index / itemsPerRow)
+                    .Select(a => a.Select(b => b.a).ToArray()).ToArray();
 
                 splitted = t;
             }
             catch
             {
-
             }
 
             return splitted;
         }
 
-        public int Count
-        {
-            get
-            {
-                if (this.Buttons.Count == 0)
-                    return 0;
-
-                return this.Buttons.Select(a => a.ToArray()).ToList().Aggregate((a, b) => a.Union(b).ToArray()).Length;
-            }
-        }
-
         /// <summary>
-        /// Add buttons splitted in the amount of columns (i.e. 2 per row...)
+        ///     Add buttons splitted in the amount of columns (i.e. 2 per row...)
         /// </summary>
         /// <param name="buttons"></param>
         /// <param name="buttonsPerRow"></param>
         public void AddSplitted(IEnumerable<ButtonBase> buttons, int buttonsPerRow = 2)
         {
-            var sp = SplitTo<ButtonBase>(buttons, buttonsPerRow);
+            var sp = SplitTo(buttons, buttonsPerRow);
 
-            foreach (var bl in sp)
-            {
-                AddButtonRow(bl);
-            }
+            foreach (var bl in sp) AddButtonRow(bl);
         }
 
         /// <summary>
-        /// Returns a range of rows from the buttons.
+        ///     Returns a range of rows from the buttons.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="count"></param>
@@ -162,19 +140,20 @@ namespace TelegramBotBase.Form
 
         public List<ButtonBase> ToList()
         {
-            return this.Buttons.DefaultIfEmpty(new List<ButtonBase>()).Select(a => a.ToList()).Aggregate((a, b) => a.Union(b).ToList());
+            return Buttons.DefaultIfEmpty(new List<ButtonBase>()).Select(a => a.ToList())
+                .Aggregate((a, b) => a.Union(b).ToList());
         }
 
         public InlineKeyboardButton[][] ToInlineButtonArray()
         {
-            var ikb = this.Buttons.Select(a => a.ToArray().Select(b => b.ToInlineButton(this)).ToArray()).ToArray();
+            var ikb = Buttons.Select(a => a.ToArray().Select(b => b.ToInlineButton(this)).ToArray()).ToArray();
 
             return ikb;
         }
 
         public KeyboardButton[][] ToReplyButtonArray()
         {
-            var ikb = this.Buttons.Select(a => a.ToArray().Select(b => b.ToKeyboardButton(this)).ToArray()).ToArray();
+            var ikb = Buttons.Select(a => a.ToArray().Select(b => b.ToKeyboardButton(this)).ToArray()).ToArray();
 
             return ikb;
         }
@@ -186,32 +165,32 @@ namespace TelegramBotBase.Form
 
         public int FindRowByButton(ButtonBase button)
         {
-            var row = this.Buttons.FirstOrDefault(a => a.ToArray().Count(b => b == button) > 0);
+            var row = Buttons.FirstOrDefault(a => a.ToArray().Count(b => b == button) > 0);
             if (row == null)
                 return -1;
 
-            return this.Buttons.IndexOf(row);
+            return Buttons.IndexOf(row);
         }
 
-        public Tuple<ButtonRow, int> FindRow(String text, bool useText = true)
+        public Tuple<ButtonRow, int> FindRow(string text, bool useText = true)
         {
-            var r = this.Buttons.FirstOrDefault(a => a.Matches(text, useText));
+            var r = Buttons.FirstOrDefault(a => a.Matches(text, useText));
             if (r == null)
                 return null;
 
-            var i = this.Buttons.IndexOf(r);
+            var i = Buttons.IndexOf(r);
             return new Tuple<ButtonRow, int>(r, i);
         }
 
 
         /// <summary>
-        /// Returns the first Button with the given value.
+        ///     Returns the first Button with the given value.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public ButtonBase GetButtonByValue(String value)
+        public ButtonBase GetButtonByValue(string value)
         {
-            return this.ToList().Where(a => a.Value == value).FirstOrDefault();
+            return ToList().Where(a => a.Value == value).FirstOrDefault();
         }
 
         public static implicit operator InlineKeyboardMarkup(ButtonForm form)
@@ -219,7 +198,7 @@ namespace TelegramBotBase.Form
             if (form == null)
                 return null;
 
-            InlineKeyboardMarkup ikm = new InlineKeyboardMarkup(form.ToInlineButtonArray());
+            var ikm = new InlineKeyboardMarkup(form.ToInlineButtonArray());
 
             return ikm;
         }
@@ -229,30 +208,27 @@ namespace TelegramBotBase.Form
             if (form == null)
                 return null;
 
-            ReplyKeyboardMarkup ikm = new ReplyKeyboardMarkup(form.ToReplyButtonArray());
+            var ikm = new ReplyKeyboardMarkup(form.ToReplyButtonArray());
 
             return ikm;
         }
 
         /// <summary>
-        /// Creates a copy of this form.
+        ///     Creates a copy of this form.
         /// </summary>
         /// <returns></returns>
         public ButtonForm Duplicate()
         {
-            var bf = new ButtonForm()
+            var bf = new ButtonForm
             {
-                Markup = this.Markup,
-                DependencyControl = this.DependencyControl
+                Markup = Markup,
+                DependencyControl = DependencyControl
             };
 
             foreach (var b in Buttons)
             {
                 var lst = new ButtonRow();
-                foreach (var b2 in b)
-                {
-                    lst.Add(b2);
-                }
+                foreach (var b2 in b) lst.Add(b2);
                 bf.Buttons.Add(lst);
             }
 
@@ -260,15 +236,15 @@ namespace TelegramBotBase.Form
         }
 
         /// <summary>
-        /// Creates a copy of this form and filters by the parameter.
+        ///     Creates a copy of this form and filters by the parameter.
         /// </summary>
         /// <returns></returns>
-        public ButtonForm FilterDuplicate(String filter, bool ByRow = false)
+        public ButtonForm FilterDuplicate(string filter, bool ByRow = false)
         {
-            var bf = new ButtonForm()
+            var bf = new ButtonForm
             {
-                Markup = this.Markup,
-                DependencyControl = this.DependencyControl
+                Markup = Markup,
+                DependencyControl = DependencyControl
             };
 
             foreach (var b in Buttons)
@@ -285,10 +261,8 @@ namespace TelegramBotBase.Form
                         lst = b;
                         break;
                     }
-                    else
-                    {
-                        lst.Add(b2);
-                    }
+
+                    lst.Add(b2);
                 }
 
                 if (lst.Count > 0)
@@ -299,15 +273,15 @@ namespace TelegramBotBase.Form
         }
 
         /// <summary>
-        /// Creates a copy of this form and filters by the parameter.
+        ///     Creates a copy of this form and filters by the parameter.
         /// </summary>
         /// <returns></returns>
-        public ButtonForm TagDuplicate(List<String> tags, bool ByRow = false)
+        public ButtonForm TagDuplicate(List<string> tags, bool ByRow = false)
         {
-            var bf = new ButtonForm()
+            var bf = new ButtonForm
             {
-                Markup = this.Markup,
-                DependencyControl = this.DependencyControl
+                Markup = Markup,
+                DependencyControl = DependencyControl
             };
 
             foreach (var b in Buttons)
@@ -327,10 +301,8 @@ namespace TelegramBotBase.Form
                         lst = b;
                         break;
                     }
-                    else
-                    {
-                        lst.Add(b2);
-                    }
+
+                    lst.Add(b2);
                 }
 
                 if (lst.Count > 0)

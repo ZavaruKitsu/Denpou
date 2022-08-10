@@ -1,40 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using TelegramBotBase.Args;
 using TelegramBotBase.Base;
+using TelegramBotBase.Controls.Hybrid;
 using TelegramBotBase.Form;
 
 namespace TelegramBotBaseTest.Tests.Controls.Subclass
 {
-    public class MultiViewTest : TelegramBotBase.Controls.Hybrid.MultiView
+    public class MultiViewTest : MultiView
     {
-
-
         public override async Task Action(MessageResult result, string value = null)
         {
-
             switch (result.RawData)
             {
                 case "back":
 
-                    this.SelectedViewIndex--;
+                    SelectedViewIndex--;
 
                     break;
                 case "next":
 
-                    this.SelectedViewIndex++;
+                    SelectedViewIndex++;
 
                     break;
             }
-
         }
 
         public override async Task RenderView(RenderViewEventArgs e)
         {
-
-            ButtonForm bf = new ButtonForm();
+            var bf = new ButtonForm();
             bf.AddButtonRow(new ButtonBase("Back", "back"), new ButtonBase("Next", "next"));
 
             switch (e.CurrentView)
@@ -52,13 +45,7 @@ namespace TelegramBotBaseTest.Tests.Controls.Subclass
                     await Device.Send("Unknown Page", bf);
 
                     break;
-
-
             }
-
         }
-
-
-
     }
 }

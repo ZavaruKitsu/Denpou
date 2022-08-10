@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using TelegramBotBase.Args;
 using TelegramBotBase.Base;
-using TelegramBotBase.Enums;
 using TelegramBotBase.Interfaces;
 using TelegramBotBase.Sessions;
 
@@ -15,31 +12,26 @@ namespace TelegramBotBase.Factories.MessageLoops
 {
     public class FormBaseMessageLoop : IMessageLoopFactory
     {
-        private static object __evUnhandledCall = new object();
+        private static readonly object __evUnhandledCall = new object();
 
-        private EventHandlerList __Events = new EventHandlerList();
-
-        public FormBaseMessageLoop()
-        {
-
-        }
+        private readonly EventHandlerList __Events = new EventHandlerList();
 
         public async Task MessageLoop(BotBase Bot, DeviceSession session, UpdateResult ur, MessageResult mr)
         {
             var update = ur.RawData;
 
 
-            if (update.Type != Telegram.Bot.Types.Enums.UpdateType.Message
-             && update.Type != Telegram.Bot.Types.Enums.UpdateType.EditedMessage
-             && update.Type != Telegram.Bot.Types.Enums.UpdateType.CallbackQuery)
-            {
+            if (update.Type != UpdateType.Message
+                && update.Type != UpdateType.EditedMessage
+                && update.Type != UpdateType.CallbackQuery)
                 return;
-            }
 
             //Is this a bot command ?
-            if (mr.IsFirstHandler && mr.IsBotCommand && Bot.BotCommands.Count(a => "/" + a.Command == mr.BotCommand) > 0)
+            if (mr.IsFirstHandler && mr.IsBotCommand &&
+                Bot.BotCommands.Count(a => "/" + a.Command == mr.BotCommand) > 0)
             {
-                var sce = new BotCommandEventArgs(mr.BotCommand, mr.BotCommandParameters, mr.Message, session.DeviceId, session);
+                var sce = new BotCommandEventArgs(mr.BotCommand, mr.BotCommandParameters, mr.Message, session.DeviceId,
+                    session);
                 await Bot.OnBotCommand(sce);
 
                 if (sce.Handled)
@@ -61,18 +53,14 @@ namespace TelegramBotBase.Factories.MessageLoops
 
 
             //Is Attachment ? (Photo, Audio, Video, Contact, Location, Document) (Ignore Callback Queries)
-            if (update.Type == Telegram.Bot.Types.Enums.UpdateType.Message)
-            {
-                if (mr.MessageType == Telegram.Bot.Types.Enums.MessageType.Contact
-                    | mr.MessageType == Telegram.Bot.Types.Enums.MessageType.Document
-                    | mr.MessageType == Telegram.Bot.Types.Enums.MessageType.Location
-                    | mr.MessageType == Telegram.Bot.Types.Enums.MessageType.Photo
-                    | mr.MessageType == Telegram.Bot.Types.Enums.MessageType.Video
-                    | mr.MessageType == Telegram.Bot.Types.Enums.MessageType.Audio)
-                {
+            if (update.Type == UpdateType.Message)
+                if ((mr.MessageType == MessageType.Contact)
+                    | (mr.MessageType == MessageType.Document)
+                    | (mr.MessageType == MessageType.Location)
+                    | (mr.MessageType == MessageType.Photo)
+                    | (mr.MessageType == MessageType.Video)
+                    | (mr.MessageType == MessageType.Audio))
                     await activeForm.SentData(new DataResult(ur));
-                }
-            }
 
             //Action Event
             if (!session.FormSwitched && mr.IsAction)
@@ -85,19 +73,16 @@ namespace TelegramBotBase.Factories.MessageLoops
 
                 if (!mr.Handled)
                 {
-                    var uhc = new UnhandledCallEventArgs(ur.Message.Text, mr.RawData, session.DeviceId, mr.MessageId, ur.Message, session);
+                    var uhc = new UnhandledCallEventArgs(ur.Message.Text, mr.RawData, session.DeviceId, mr.MessageId,
+                        ur.Message, session);
                     OnUnhandledCall(uhc);
 
                     if (uhc.Handled)
                     {
                         mr.Handled = true;
-                        if (!session.FormSwitched)
-                        {
-                            return;
-                        }
+                        if (!session.FormSwitched) return;
                     }
                 }
-
             }
 
             if (!session.FormSwitched)
@@ -107,28 +92,20 @@ namespace TelegramBotBase.Factories.MessageLoops
 
                 await activeForm.Render(mr);
             }
-
         }
 
         /// <summary>
-        /// Will be called if no form handeled this call
+        ///     Will be called if no form handeled this call
         /// </summary>
         public event EventHandler<UnhandledCallEventArgs> UnhandledCall
         {
-            add
-            {
-                this.__Events.AddHandler(__evUnhandledCall, value);
-            }
-            remove
-            {
-                this.__Events.RemoveHandler(__evUnhandledCall, value);
-            }
+            add => __Events.AddHandler(__evUnhandledCall, value);
+            remove => __Events.RemoveHandler(__evUnhandledCall, value);
         }
 
         public void OnUnhandledCall(UnhandledCallEventArgs e)
         {
-            (this.__Events[__evUnhandledCall] as EventHandler<UnhandledCallEventArgs>)?.Invoke(this, e);
-
+            (__Events[__evUnhandledCall] as EventHandler<UnhandledCallEventArgs>)?.Invoke(this, e);
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TelegramBotBase.Args;
 using TelegramBotBase.Attributes;
@@ -13,51 +12,50 @@ namespace TelegramBotBase.Form
     [IgnoreState]
     public class ConfirmDialog : ModalDialog
     {
-        /// <summary>
-        /// The message the users sees.
-        /// </summary>
-        public String Message { get; set; }
-
-        /// <summary>
-        /// An additional optional value.
-        /// </summary>
-        public object Tag { get; set; }
-
-        /// <summary>
-        /// Automatically close form on button click
-        /// </summary>
-        public bool AutoCloseOnClick { get; set; } = true;
-
-        public List<ButtonBase> Buttons { get; set; }
-
-        private EventHandlerList __Events { get; set; } = new EventHandlerList();
-
-        private static object __evButtonClicked { get; } = new object();
-
         public ConfirmDialog()
         {
-
         }
 
-        public ConfirmDialog(String Message)
+        public ConfirmDialog(string Message)
         {
             this.Message = Message;
-            this.Buttons = new List<Form.ButtonBase>();
+            Buttons = new List<ButtonBase>();
         }
 
-        public ConfirmDialog(String Message, params ButtonBase[] Buttons)
+        public ConfirmDialog(string Message, params ButtonBase[] Buttons)
         {
             this.Message = Message;
             this.Buttons = Buttons.ToList();
         }
 
         /// <summary>
-        /// Adds one Button
+        ///     The message the users sees.
+        /// </summary>
+        public string Message { get; set; }
+
+        /// <summary>
+        ///     An additional optional value.
+        /// </summary>
+        public object Tag { get; set; }
+
+        /// <summary>
+        ///     Automatically close form on button click
+        /// </summary>
+        public bool AutoCloseOnClick { get; set; } = true;
+
+        public List<ButtonBase> Buttons { get; set; }
+
+        private EventHandlerList __Events { get; } = new EventHandlerList();
+
+        private static object __evButtonClicked { get; } = new object();
+
+        /// <summary>
+        ///     Adds one Button
         /// </summary>
         /// <param name="button"></param>
         public void AddButton(ButtonBase button)
         {
-            this.Buttons.Add(button);
+            Buttons.Add(button);
         }
 
         public override async Task Action(MessageResult message)
@@ -78,14 +76,11 @@ namespace TelegramBotBase.Form
 
             await message.DeleteMessage();
 
-            ButtonBase button = this.Buttons.FirstOrDefault(a => a.Value == call.Value);
+            var button = Buttons.FirstOrDefault(a => a.Value == call.Value);
 
-            if (button == null)
-            {
-                return;
-            }
+            if (button == null) return;
 
-            OnButtonClicked(new ButtonClickedEventArgs(button) { Tag = this.Tag });
+            OnButtonClicked(new ButtonClickedEventArgs(button) { Tag = Tag });
 
             if (AutoCloseOnClick)
                 await CloseForm();
@@ -94,31 +89,24 @@ namespace TelegramBotBase.Form
 
         public override async Task Render(MessageResult message)
         {
-            ButtonForm btn = new ButtonForm();
+            var btn = new ButtonForm();
 
-            var buttons = this.Buttons.Select(a => new ButtonBase(a.Text, CallbackData.Create("action", a.Value))).ToList();
+            var buttons = Buttons.Select(a => new ButtonBase(a.Text, CallbackData.Create("action", a.Value))).ToList();
             btn.AddButtonRow(buttons);
 
-            await this.Device.Send(this.Message, btn);
+            await Device.Send(Message, btn);
         }
 
 
         public event EventHandler<ButtonClickedEventArgs> ButtonClicked
         {
-            add
-            {
-                this.__Events.AddHandler(__evButtonClicked, value);
-            }
-            remove
-            {
-                this.__Events.RemoveHandler(__evButtonClicked, value);
-            }
+            add => __Events.AddHandler(__evButtonClicked, value);
+            remove => __Events.RemoveHandler(__evButtonClicked, value);
         }
 
         public void OnButtonClicked(ButtonClickedEventArgs e)
         {
-            (this.__Events[__evButtonClicked] as EventHandler<ButtonClickedEventArgs>)?.Invoke(this, e);
+            (__Events[__evButtonClicked] as EventHandler<ButtonClickedEventArgs>)?.Invoke(this, e);
         }
-
     }
 }

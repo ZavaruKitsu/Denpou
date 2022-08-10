@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Telegram.Bot.Types.Enums;
 using TelegramBotBase.Base;
-
 
 namespace TelegramBotBase.Form
 {
     /// <summary>
-    /// This is used to split incomming requests depending on the chat type.
+    ///     This is used to split incomming requests depending on the chat type.
     /// </summary>
     public class SplitterForm : FormBase
     {
-
         private static object __evOpenSupergroup = new object();
         private static object __evOpenGroup = new object();
         private static object __evOpenChannel = new object();
@@ -22,32 +17,18 @@ namespace TelegramBotBase.Form
 
         public override async Task Load(MessageResult message)
         {
-
-            if (message.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Channel)
-            {
+            if (message.Message.Chat.Type == ChatType.Channel)
                 if (await OpenChannel(message))
-                {
                     return;
-                }
-            }
-            if (message.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup)
+            if (message.Message.Chat.Type == ChatType.Supergroup)
             {
-                if (await OpenSupergroup(message))
-                {
-                    return;
-                }
-                if (await OpenGroup(message))
-                {
-                    return;
-                }
+                if (await OpenSupergroup(message)) return;
+                if (await OpenGroup(message)) return;
             }
-            if (message.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Group)
-            {
+
+            if (message.Message.Chat.Type == ChatType.Group)
                 if (await OpenGroup(message))
-                {
                     return;
-                }
-            }
 
             await Open(message);
         }
@@ -74,8 +55,6 @@ namespace TelegramBotBase.Form
         }
 
 
-
-
         public override Task Action(MessageResult message)
         {
             return base.Action(message);
@@ -95,6 +74,5 @@ namespace TelegramBotBase.Form
         {
             return base.SentData(message);
         }
-
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
+using Newtonsoft.Json;
 using TelegramBotBase.Controls.Hybrid;
 using TelegramBotBase.Datasources;
 using TelegramBotBase.Form;
@@ -12,17 +12,22 @@ namespace TelegramBotBaseTest.Tests.Datasources
 {
     public class CustomDataSource : ButtonFormDataSource
     {
-
-        public List<String> Countries = new List<string>() { "Country 1", "Country 2", "Country 3" };
+        public List<string> Countries = new List<string> { "Country 1", "Country 2", "Country 3" };
 
         public CustomDataSource()
         {
             loadData();
         }
 
+        public override int Count => Countries.Count;
+
+        public override int ColumnCount => 1;
+
+        public override int RowCount => Count;
+
         /// <summary>
-        /// This method has the example purpose of creating and loading some example data.
-        /// When using a database you do not need this kind of method.
+        ///     This method has the example purpose of creating and loading some example data.
+        ///     When using a database you do not need this kind of method.
         /// </summary>
         private void loadData()
         {
@@ -31,14 +36,13 @@ namespace TelegramBotBaseTest.Tests.Datasources
             {
                 try
                 {
-                    var List = Newtonsoft.Json.JsonConvert.DeserializeObject<List<String>>(File.ReadAllText("countries.json"));
+                    var List = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText("countries.json"));
 
 
                     Countries = List;
                 }
                 catch
                 {
-
                 }
 
 
@@ -48,19 +52,18 @@ namespace TelegramBotBaseTest.Tests.Datasources
             //If not, create it
             try
             {
-                var countries = CultureInfo.GetCultures(CultureTypes.SpecificCultures).Select(a => a.DisplayName).ToList();
+                var countries = CultureInfo.GetCultures(CultureTypes.SpecificCultures).Select(a => a.DisplayName)
+                    .ToList();
 
                 Countries = countries;
 
-                var tmp = Newtonsoft.Json.JsonConvert.SerializeObject(countries);
+                var tmp = JsonConvert.SerializeObject(countries);
 
-                File.WriteAllText( AppContext.BaseDirectory + "countries.json", tmp);
+                File.WriteAllText(AppContext.BaseDirectory + "countries.json", tmp);
             }
             catch
             {
-
             }
-
         }
 
         public override ButtonRow ItemAt(int index)
@@ -76,42 +79,33 @@ namespace TelegramBotBaseTest.Tests.Datasources
         {
             var items = Countries.Skip(start).Take(count);
 
-            List<ButtonRow> lst = new List<ButtonRow>();
-            foreach (var c in items)
-            {
-                lst.Add(Render(c));
-            }
+            var lst = new List<ButtonRow>();
+            foreach (var c in items) lst.Add(Render(c));
 
             return lst;
         }
 
         public override List<ButtonRow> AllItems()
         {
-            List<ButtonRow> lst = new List<ButtonRow>();
-            foreach (var c in Countries)
-            {
-                lst.Add(Render(c));
-            }
+            var lst = new List<ButtonRow>();
+            foreach (var c in Countries) lst.Add(Render(c));
             return lst;
         }
 
         public override ButtonForm PickItems(int start, int count, string filter = null)
         {
-            List<ButtonRow> rows = ItemRange(start, count);
+            var rows = ItemRange(start, count);
 
-            ButtonForm lst = new ButtonForm();
-            foreach (var c in rows)
-            {
-                lst.AddButtonRow(c);
-            }
+            var lst = new ButtonForm();
+            foreach (var c in rows) lst.AddButtonRow(c);
             return lst;
         }
 
         public override ButtonForm PickAllItems(string filter = null)
         {
-            List<ButtonRow> rows = AllItems();
+            var rows = AllItems();
 
-            ButtonForm bf = new ButtonForm();
+            var bf = new ButtonForm();
 
             bf.AddButtonRows(rows);
 
@@ -128,36 +122,11 @@ namespace TelegramBotBaseTest.Tests.Datasources
 
         public override ButtonRow Render(object data)
         {
-            var s = data as String;
+            var s = data as string;
             if (s == null)
                 return new ButtonRow(new ButtonBase("Empty", "zero"));
 
             return new ButtonRow(new ButtonBase(s, s));
         }
-
-        public override int Count
-        {
-            get
-            {
-                return Countries.Count;
-            }
-        }
-
-        public override int ColumnCount
-        {
-            get
-            {
-                return 1;
-            }
-        }
-
-        public override int RowCount
-        {
-            get
-            {
-                return this.Count;
-            }
-        }
-
     }
 }

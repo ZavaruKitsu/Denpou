@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TelegramBotBase.Tools
 {
@@ -10,7 +6,8 @@ namespace TelegramBotBase.Tools
     {
         public static bool TryParseDay(string src, DateTime currentDate, out int resultDay)
         {
-            return int.TryParse(src, out resultDay) && resultDay >= 1 && resultDay <= DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
+            return int.TryParse(src, out resultDay) && resultDay >= 1 &&
+                   resultDay <= DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
         }
 
         public static bool TryParseMonth(string src, out int resultMonth)
@@ -22,14 +19,11 @@ namespace TelegramBotBase.Tools
         {
             return int.TryParse(src, out resultYear) && resultYear >= 0 && resultYear <= DateTime.MaxValue.Year;
         }
-        
+
         public static DateTime StartOfWeek(this DateTime dt, DayOfWeek startOfWeek)
         {
-            int diff = dt.DayOfWeek - startOfWeek;
-            if (diff < 0)
-            {
-                diff += 7;
-            }
+            var diff = dt.DayOfWeek - startOfWeek;
+            if (diff < 0) diff += 7;
             return dt.AddDays(-1 * diff).Date;
         }
 

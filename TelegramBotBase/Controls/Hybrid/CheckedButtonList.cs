@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.SymbolStore;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -14,51 +12,71 @@ using TelegramBotBase.Datasources;
 using TelegramBotBase.Enums;
 using TelegramBotBase.Exceptions;
 using TelegramBotBase.Form;
+using TelegramBotBase.Localizations;
 using static TelegramBotBase.Base.Async;
 
 namespace TelegramBotBase.Controls.Hybrid
 {
-    public class CheckedButtonList : Base.ControlBase
+    public class CheckedButtonList : ControlBase
     {
-
-        public String Title { get; set; } = Localizations.Default.Language["ButtonGrid_Title"];
-
-        public String ConfirmationText { get; set; } = "";
-
-        private bool RenderNecessary = true;
-
         private static readonly object __evButtonClicked = new object();
 
         private static readonly object __evCheckedChanged = new object();
 
         private readonly EventHandlerList Events = new EventHandlerList();
 
+        private eKeyboardType m_eKeyboardType = eKeyboardType.ReplyKeyboard;
+
+        public string NextPageLabel = Default.Language["ButtonGrid_NextPage"];
+
+        public string NoItemsLabel = Default.Language["ButtonGrid_NoItems"];
+
+        public string PreviousPageLabel = Default.Language["ButtonGrid_PreviousPage"];
+
+        private bool RenderNecessary = true;
+
+        public CheckedButtonList()
+        {
+            DataSource = new ButtonFormDataSource();
+        }
+
+        public CheckedButtonList(eKeyboardType type) : this()
+        {
+            m_eKeyboardType = type;
+        }
+
+
+        public CheckedButtonList(ButtonForm form)
+        {
+            DataSource = new ButtonFormDataSource(form);
+        }
+
+        public string Title { get; set; } = Default.Language["ButtonGrid_Title"];
+
+        public string ConfirmationText { get; set; } = "";
+
         [Obsolete("This property is obsolete. Please use the DataSource property instead.")]
         public ButtonForm ButtonsForm
         {
-            get
-            {
-                return DataSource.ButtonForm;
-            }
-            set
-            {
-                DataSource = new ButtonFormDataSource(value);
-            }
+            get => DataSource.ButtonForm;
+            set => DataSource = new ButtonFormDataSource(value);
         }
 
         /// <summary>
-        /// Data source of the items.
+        ///     Data source of the items.
         /// </summary>
         public ButtonFormDataSource DataSource { get; set; }
 
-        List<int> CheckedRows { get; set; } = new List<int>();
+        private List<int> CheckedRows { get; } = new List<int>();
 
         public int? MessageId { get; set; }
 
 
         /// <summary>
-        /// Optional. Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons). Defaults to false, in which case the custom keyboard is always of the same height as the app's standard keyboard.
-        /// Source: https://core.telegram.org/bots/api#replykeyboardmarkup
+        ///     Optional. Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if
+        ///     there are just two rows of buttons). Defaults to false, in which case the custom keyboard is always of the same
+        ///     height as the app's standard keyboard.
+        ///     Source: https://core.telegram.org/bots/api#replykeyboardmarkup
         /// </summary>
         public bool ResizeKeyboard { get; set; } = false;
 
@@ -69,17 +87,17 @@ namespace TelegramBotBase.Controls.Hybrid
         public bool DeletePreviousMessage { get; set; } = true;
 
         /// <summary>
-        /// Removes the reply message from a user.
+        ///     Removes the reply message from a user.
         /// </summary>
         public bool DeleteReplyMessage { get; set; } = true;
 
         /// <summary>
-        /// Parsemode of the message.
+        ///     Parsemode of the message.
         /// </summary>
         public ParseMode MessageParseMode { get; set; } = ParseMode.Markdown;
 
         /// <summary>
-        /// Enables automatic paging of buttons when the amount of rows is exceeding the limits.
+        ///     Enables automatic paging of buttons when the amount of rows is exceeding the limits.
         /// </summary>
         public bool EnablePaging { get; set; } = false;
 
@@ -95,126 +113,195 @@ namespace TelegramBotBase.Controls.Hybrid
 
 
         /// <summary>
-        /// Index of the current page
+        ///     Index of the current page
         /// </summary>
-        public int CurrentPageIndex { get; set; } = 0;
-
-        public String PreviousPageLabel = Localizations.Default.Language["ButtonGrid_PreviousPage"];
-
-        public String NextPageLabel = Localizations.Default.Language["ButtonGrid_NextPage"];
-
-        public String NoItemsLabel = Localizations.Default.Language["ButtonGrid_NoItems"];
+        public int CurrentPageIndex { get; set; }
 
         //public String SearchLabel = Localizations.Default.Language["ButtonGrid_SearchFeature"];
 
-        public String CheckedIconLabel { get; set; } = "✅";
+        public string CheckedIconLabel { get; set; } = "✅";
 
-        public String UncheckedIconLabel { get; set; } = "◻️";
+        public string UncheckedIconLabel { get; set; } = "◻️";
 
         /// <summary>
-        /// Layout of the buttons which should be displayed always on top.
+        ///     Layout of the buttons which should be displayed always on top.
         /// </summary>
         public ButtonRow HeadLayoutButtonRow { get; set; }
 
         /// <summary>
-        /// Layout of columns which should be displayed below the header
+        ///     Layout of columns which should be displayed below the header
         /// </summary>
         public ButtonRow SubHeadLayoutButtonRow { get; set; }
 
         /// <summary>
-        /// Defines which type of Button Keyboard should be rendered.
+        ///     Defines which type of Button Keyboard should be rendered.
         /// </summary>
         public eKeyboardType KeyboardType
         {
-            get
-            {
-                return m_eKeyboardType;
-            }
+            get => m_eKeyboardType;
             set
             {
                 if (m_eKeyboardType != value)
                 {
-                    this.RenderNecessary = true;
+                    RenderNecessary = true;
 
                     Cleanup().Wait();
 
                     m_eKeyboardType = value;
                 }
-
             }
         }
 
-        private eKeyboardType m_eKeyboardType = eKeyboardType.ReplyKeyboard;
-
-        public CheckedButtonList()
+        public bool PagingNecessary
         {
-            this.DataSource = new ButtonFormDataSource();
+            get
+            {
+                if (KeyboardType == eKeyboardType.InlineKeyBoard &&
+                    TotalRows > Constants.Telegram.MaxInlineKeyBoardRows) return true;
 
+                if (KeyboardType == eKeyboardType.ReplyKeyboard &&
+                    TotalRows > Constants.Telegram.MaxReplyKeyboardRows) return true;
 
+                return false;
+            }
         }
 
-        public CheckedButtonList(eKeyboardType type) : this()
+        public bool IsNavigationBarVisible
         {
-            m_eKeyboardType = type;
+            get
+            {
+                if ((NavigationBarVisibility == eNavigationBarVisibility.always) |
+                    (NavigationBarVisibility == eNavigationBarVisibility.auto && PagingNecessary)) return true;
+
+                return false;
+            }
         }
 
-
-        public CheckedButtonList(ButtonForm form)
+        /// <summary>
+        ///     Returns the maximum number of rows
+        /// </summary>
+        public int MaximumRow
         {
-            this.DataSource = new ButtonFormDataSource(form);
+            get
+            {
+                switch (KeyboardType)
+                {
+                    case eKeyboardType.InlineKeyBoard:
+                        return Constants.Telegram.MaxInlineKeyBoardRows;
+
+                    case eKeyboardType.ReplyKeyboard:
+                        return Constants.Telegram.MaxReplyKeyboardRows;
+
+                    default:
+                        return 0;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Returns the number of all rows (layout + navigation + content);
+        /// </summary>
+        public int TotalRows => LayoutRows + DataSource.RowCount;
+
+
+        /// <summary>
+        ///     Contains the Number of Rows which are used by the layout.
+        /// </summary>
+        private int LayoutRows
+        {
+            get
+            {
+                var layoutRows = 0;
+
+                if ((NavigationBarVisibility == eNavigationBarVisibility.always) |
+                    (NavigationBarVisibility == eNavigationBarVisibility.auto))
+                    layoutRows += 2;
+
+                if (HeadLayoutButtonRow != null && HeadLayoutButtonRow.Count > 0)
+                    layoutRows++;
+
+                if (SubHeadLayoutButtonRow != null && SubHeadLayoutButtonRow.Count > 0)
+                    layoutRows++;
+
+                return layoutRows;
+            }
+        }
+
+        /// <summary>
+        ///     Returns the number of item rows per page.
+        /// </summary>
+        public int ItemRowsPerPage => MaximumRow - LayoutRows;
+
+        public int PageCount
+        {
+            get
+            {
+                if (DataSource.RowCount == 0)
+                    return 1;
+
+                //var bf = this.DataSource.PickAllItems(this.EnableSearch ? this.SearchQuery : null);
+
+                var max = DataSource.RowCount;
+
+                //if (this.EnableSearch && this.SearchQuery != null && this.SearchQuery != "")
+                //{
+                //    bf = bf.FilterDuplicate(this.SearchQuery);
+                //}
+
+                if (max == 0)
+                    return 1;
+
+                return (int)Math.Ceiling(max / (decimal)ItemRowsPerPage);
+            }
+        }
+
+        public List<ButtonBase> CheckedItems
+        {
+            get
+            {
+                var lst = new List<ButtonBase>();
+
+                foreach (var c in CheckedRows) lst.Add(ButtonsForm[c][0]);
+
+                return lst;
+            }
         }
 
         public event AsyncEventHandler<ButtonClickedEventArgs> ButtonClicked
         {
-            add
-            {
-                this.Events.AddHandler(__evButtonClicked, value);
-            }
-            remove
-            {
-                this.Events.RemoveHandler(__evButtonClicked, value);
-            }
+            add => Events.AddHandler(__evButtonClicked, value);
+            remove => Events.RemoveHandler(__evButtonClicked, value);
         }
 
         public async Task OnButtonClicked(ButtonClickedEventArgs e)
         {
-            var handler = this.Events[__evButtonClicked]?.GetInvocationList().Cast<AsyncEventHandler<ButtonClickedEventArgs>>();
+            var handler = Events[__evButtonClicked]?.GetInvocationList()
+                .Cast<AsyncEventHandler<ButtonClickedEventArgs>>();
             if (handler == null)
                 return;
 
-            foreach (var h in handler)
-            {
-                await Async.InvokeAllAsync<ButtonClickedEventArgs>(h, this, e);
-            }
+            foreach (var h in handler) await h.InvokeAllAsync(this, e);
         }
 
         public event AsyncEventHandler<CheckedChangedEventArgs> CheckedChanged
         {
-            add
-            {
-                this.Events.AddHandler(__evCheckedChanged, value);
-            }
-            remove
-            {
-                this.Events.RemoveHandler(__evCheckedChanged, value);
-            }
+            add => Events.AddHandler(__evCheckedChanged, value);
+            remove => Events.RemoveHandler(__evCheckedChanged, value);
         }
 
         public async Task OnCheckedChanged(CheckedChangedEventArgs e)
         {
-            var handler = this.Events[__evCheckedChanged]?.GetInvocationList().Cast<AsyncEventHandler<CheckedChangedEventArgs>>();
+            var handler = Events[__evCheckedChanged]?.GetInvocationList()
+                .Cast<AsyncEventHandler<CheckedChangedEventArgs>>();
             if (handler == null)
                 return;
 
-            foreach (var h in handler)
-            {
-                await Async.InvokeAllAsync<CheckedChangedEventArgs>(h, this, e);
-            }
+            foreach (var h in handler) await h.InvokeAllAsync(this, e);
         }
 
-        public async override Task Load(MessageResult result)
+        public override async Task Load(MessageResult result)
         {
-            if (this.KeyboardType != eKeyboardType.ReplyKeyboard)
+            if (KeyboardType != eKeyboardType.ReplyKeyboard)
                 return;
 
             if (!result.IsFirstHandler)
@@ -225,7 +312,7 @@ namespace TelegramBotBase.Controls.Hybrid
 
             var matches = new List<ButtonRow>();
             ButtonRow match = null;
-            int index = -1;
+            var index = -1;
 
             if (HeadLayoutButtonRow?.Matches(result.MessageText) ?? false)
             {
@@ -247,68 +334,65 @@ namespace TelegramBotBase.Controls.Hybrid
             }
 
 
-        //var button = HeadLayoutButtonRow?. .FirstOrDefault(a => a.Text.Trim() == result.MessageText)
-        //            ?? SubHeadLayoutButtonRow?.FirstOrDefault(a => a.Text.Trim() == result.MessageText);
+            //var button = HeadLayoutButtonRow?. .FirstOrDefault(a => a.Text.Trim() == result.MessageText)
+            //            ?? SubHeadLayoutButtonRow?.FirstOrDefault(a => a.Text.Trim() == result.MessageText);
 
-        // bf.ToList().FirstOrDefault(a => a.Text.Trim() == result.MessageText)
+            // bf.ToList().FirstOrDefault(a => a.Text.Trim() == result.MessageText)
 
-        //var index = bf.FindRowByButton(button);
+            //var index = bf.FindRowByButton(button);
 
 
-
-        check:
+            check:
 
 
             //Remove button click message
-            if (this.DeleteReplyMessage)
+            if (DeleteReplyMessage)
                 await Device.DeleteMessage(result.MessageId);
 
             if (match == null)
             {
                 if (result.MessageText == PreviousPageLabel)
                 {
-                    if (this.CurrentPageIndex > 0)
-                        this.CurrentPageIndex--;
+                    if (CurrentPageIndex > 0)
+                        CurrentPageIndex--;
 
-                    this.Updated();
+                    Updated();
                 }
                 else if (result.MessageText == NextPageLabel)
                 {
-                    if (this.CurrentPageIndex < this.PageCount - 1)
-                        this.CurrentPageIndex++;
+                    if (CurrentPageIndex < PageCount - 1)
+                        CurrentPageIndex++;
 
-                    this.Updated();
+                    Updated();
                 }
                 else if (result.MessageText.EndsWith(CheckedIconLabel))
                 {
                     var s = result.MessageText.Split(' ', '.');
                     index = int.Parse(s[0]) - 1;
 
-                    if (!this.CheckedRows.Contains(index))
+                    if (!CheckedRows.Contains(index))
                         return;
 
-                    this.CheckedRows.Remove(index);
+                    CheckedRows.Remove(index);
 
-                    this.Updated();
+                    Updated();
 
                     await OnCheckedChanged(new CheckedChangedEventArgs(ButtonsForm[index], index, false));
-
                 }
                 else if (result.MessageText.EndsWith(UncheckedIconLabel))
                 {
                     var s = result.MessageText.Split(' ', '.');
                     index = int.Parse(s[0]) - 1;
 
-                    if (this.CheckedRows.Contains(index))
+                    if (CheckedRows.Contains(index))
                         return;
 
 
-                    this.CheckedRows.Add(index);
+                    CheckedRows.Add(index);
 
-                    this.Updated();
+                    Updated();
 
                     await OnCheckedChanged(new CheckedChangedEventArgs(ButtonsForm[index], index, true));
-
                 }
                 //else if (this.EnableSearch)
                 //{
@@ -336,7 +420,6 @@ namespace TelegramBotBase.Controls.Hybrid
                 //}
 
 
-
                 return;
             }
 
@@ -352,10 +435,9 @@ namespace TelegramBotBase.Controls.Hybrid
             //    await Device.DeleteMessage(result.MessageId);
 
             //result.Handled = true;
-
         }
 
-        public async override Task Action(MessageResult result, string value = null)
+        public override async Task Action(MessageResult result, string value = null)
         {
             if (result.Handled)
                 return;
@@ -364,13 +446,13 @@ namespace TelegramBotBase.Controls.Hybrid
                 return;
 
             //Find clicked button depending on Text or Value (depending on markup type)
-            if (this.KeyboardType != eKeyboardType.InlineKeyBoard)
+            if (KeyboardType != eKeyboardType.InlineKeyBoard)
                 return;
 
-            await result.ConfirmAction(this.ConfirmationText ?? "");
+            await result.ConfirmAction(ConfirmationText ?? "");
 
             ButtonRow match = null;
-            int index = -1;
+            var index = -1;
 
             if (HeadLayoutButtonRow?.Matches(result.RawData, false) ?? false)
             {
@@ -392,19 +474,19 @@ namespace TelegramBotBase.Controls.Hybrid
             }
 
 
+            //var bf = DataSource.ButtonForm;
 
-        //var bf = DataSource.ButtonForm;
+            //var button = HeadLayoutButtonRow?.FirstOrDefault(a => a.Value == result.RawData)
+            //            ?? SubHeadLayoutButtonRow?.FirstOrDefault(a => a.Value == result.RawData)
+            //            ?? bf.ToList().FirstOrDefault(a => a.Value == result.RawData);
 
-        //var button = HeadLayoutButtonRow?.FirstOrDefault(a => a.Value == result.RawData)
-        //            ?? SubHeadLayoutButtonRow?.FirstOrDefault(a => a.Value == result.RawData)
-        //            ?? bf.ToList().FirstOrDefault(a => a.Value == result.RawData);
+            //var index = bf.FindRowByButton(button);
 
-        //var index = bf.FindRowByButton(button);
-
-        check:
+            check:
             if (match != null)
             {
-                await OnButtonClicked(new ButtonClickedEventArgs(match.GetButtonMatch(result.RawData, false), index, match));
+                await OnButtonClicked(new ButtonClickedEventArgs(match.GetButtonMatch(result.RawData, false), index,
+                    match));
 
                 result.Handled = true;
                 return;
@@ -422,18 +504,18 @@ namespace TelegramBotBase.Controls.Hybrid
             {
                 case "$previous$":
 
-                    if (this.CurrentPageIndex > 0)
-                        this.CurrentPageIndex--;
+                    if (CurrentPageIndex > 0)
+                        CurrentPageIndex--;
 
-                    this.Updated();
+                    Updated();
 
                     break;
                 case "$next$":
 
-                    if (this.CurrentPageIndex < this.PageCount - 1)
-                        this.CurrentPageIndex++;
+                    if (CurrentPageIndex < PageCount - 1)
+                        CurrentPageIndex++;
 
-                    this.Updated();
+                    Updated();
 
                     break;
 
@@ -448,11 +530,11 @@ namespace TelegramBotBase.Controls.Hybrid
 
                             index = int.Parse(s[1]);
 
-                            if (!this.CheckedRows.Contains(index))
+                            if (!CheckedRows.Contains(index))
                             {
-                                this.CheckedRows.Add(index);
+                                CheckedRows.Add(index);
 
-                                this.Updated();
+                                Updated();
 
                                 await OnCheckedChanged(new CheckedChangedEventArgs(ButtonsForm[index], index, true));
                             }
@@ -463,11 +545,11 @@ namespace TelegramBotBase.Controls.Hybrid
 
                             index = int.Parse(s[1]);
 
-                            if (this.CheckedRows.Contains(index))
+                            if (CheckedRows.Contains(index))
                             {
-                                this.CheckedRows.Remove(index);
+                                CheckedRows.Remove(index);
 
-                                this.Updated();
+                                Updated();
 
                                 await OnCheckedChanged(new CheckedChangedEventArgs(ButtonsForm[index], index, false));
                             }
@@ -477,13 +559,11 @@ namespace TelegramBotBase.Controls.Hybrid
 
 
                     break;
-
             }
-
         }
 
         /// <summary>
-        /// This method checks of the amount of buttons
+        ///     This method checks of the amount of buttons
         /// </summary>
         private void CheckGrid()
         {
@@ -491,47 +571,43 @@ namespace TelegramBotBase.Controls.Hybrid
             {
                 case eKeyboardType.InlineKeyBoard:
 
-                    if (DataSource.RowCount > Constants.Telegram.MaxInlineKeyBoardRows && !this.EnablePaging)
-                    {
-                        throw new MaximumRowsReachedException() { Value = DataSource.RowCount, Maximum = Constants.Telegram.MaxInlineKeyBoardRows };
-                    }
+                    if (DataSource.RowCount > Constants.Telegram.MaxInlineKeyBoardRows && !EnablePaging)
+                        throw new MaximumRowsReachedException
+                            { Value = DataSource.RowCount, Maximum = Constants.Telegram.MaxInlineKeyBoardRows };
 
                     if (DataSource.ColumnCount > Constants.Telegram.MaxInlineKeyBoardCols)
-                    {
-                        throw new MaximumColsException() { Value = DataSource.ColumnCount, Maximum = Constants.Telegram.MaxInlineKeyBoardCols };
-                    }
+                        throw new MaximumColsException
+                            { Value = DataSource.ColumnCount, Maximum = Constants.Telegram.MaxInlineKeyBoardCols };
 
                     break;
 
                 case eKeyboardType.ReplyKeyboard:
 
-                    if (DataSource.RowCount > Constants.Telegram.MaxReplyKeyboardRows && !this.EnablePaging)
-                    {
-                        throw new MaximumRowsReachedException() { Value = DataSource.RowCount, Maximum = Constants.Telegram.MaxReplyKeyboardRows };
-                    }
+                    if (DataSource.RowCount > Constants.Telegram.MaxReplyKeyboardRows && !EnablePaging)
+                        throw new MaximumRowsReachedException
+                            { Value = DataSource.RowCount, Maximum = Constants.Telegram.MaxReplyKeyboardRows };
 
                     if (DataSource.ColumnCount > Constants.Telegram.MaxReplyKeyboardCols)
-                    {
-                        throw new MaximumColsException() { Value = DataSource.ColumnCount, Maximum = Constants.Telegram.MaxReplyKeyboardCols };
-                    }
+                        throw new MaximumColsException
+                            { Value = DataSource.ColumnCount, Maximum = Constants.Telegram.MaxReplyKeyboardCols };
 
                     break;
             }
         }
 
-        public async override Task Render(MessageResult result)
+        public override async Task Render(MessageResult result)
         {
-            if (!this.RenderNecessary)
+            if (!RenderNecessary)
                 return;
 
             //Check for rows and column limits
             CheckGrid();
 
-            this.RenderNecessary = false;
+            RenderNecessary = false;
 
             Message m = null;
 
-            ButtonForm form = this.DataSource.PickItems(CurrentPageIndex * ItemRowsPerPage, ItemRowsPerPage, null);
+            var form = DataSource.PickItems(CurrentPageIndex * ItemRowsPerPage, ItemRowsPerPage);
 
             //if (this.EnableSearch && this.SearchQuery != null && this.SearchQuery != "")
             //{
@@ -542,43 +618,33 @@ namespace TelegramBotBase.Controls.Hybrid
             //form = form.Duplicate();
             //}
 
-            if (this.EnablePaging)
-            {
+            if (EnablePaging)
                 IntegratePagingView(form);
-            }
             else
-            {
                 form = PrepareCheckableLayout(form);
-            }
 
-            if (this.HeadLayoutButtonRow != null && HeadLayoutButtonRow.Count > 0)
-            {
-                form.InsertButtonRow(0, this.HeadLayoutButtonRow.ToArray());
-            }
+            if (HeadLayoutButtonRow != null && HeadLayoutButtonRow.Count > 0)
+                form.InsertButtonRow(0, HeadLayoutButtonRow.ToArray());
 
-            if (this.SubHeadLayoutButtonRow != null && SubHeadLayoutButtonRow.Count > 0)
+            if (SubHeadLayoutButtonRow != null && SubHeadLayoutButtonRow.Count > 0)
             {
-                if (this.IsNavigationBarVisible)
-                {
-                    form.InsertButtonRow(2, this.SubHeadLayoutButtonRow.ToArray());
-                }
+                if (IsNavigationBarVisible)
+                    form.InsertButtonRow(2, SubHeadLayoutButtonRow.ToArray());
                 else
-                {
-                    form.InsertButtonRow(1, this.SubHeadLayoutButtonRow.ToArray());
-                }
+                    form.InsertButtonRow(1, SubHeadLayoutButtonRow.ToArray());
             }
 
-            switch (this.KeyboardType)
+            switch (KeyboardType)
             {
                 //Reply Keyboard could only be updated with a new keyboard.
                 case eKeyboardType.ReplyKeyboard:
 
                     if (form.Count == 0)
                     {
-                        if (this.MessageId != null)
+                        if (MessageId != null)
                         {
-                            await this.Device.HideReplyKeyboard();
-                            this.MessageId = null;
+                            await Device.HideReplyKeyboard();
+                            MessageId = null;
                         }
 
                         return;
@@ -589,57 +655,49 @@ namespace TelegramBotBase.Controls.Hybrid
 
 
                     var rkm = (ReplyKeyboardMarkup)form;
-                    rkm.ResizeKeyboard = this.ResizeKeyboard;
-                    rkm.OneTimeKeyboard = this.OneTimeKeyboard;
-                    m = await this.Device.Send(this.Title, rkm, disableNotification: true, parseMode: MessageParseMode, MarkdownV2AutoEscape: false);
+                    rkm.ResizeKeyboard = ResizeKeyboard;
+                    rkm.OneTimeKeyboard = OneTimeKeyboard;
+                    m = await Device.Send(Title, rkm, disableNotification: true, parseMode: MessageParseMode,
+                        MarkdownV2AutoEscape: false);
 
                     //Prevent flicker of keyboard
-                    if (this.DeletePreviousMessage && this.MessageId != null)
-                        await this.Device.DeleteMessage(this.MessageId.Value);
+                    if (DeletePreviousMessage && MessageId != null)
+                        await Device.DeleteMessage(MessageId.Value);
 
                     break;
 
                 case eKeyboardType.InlineKeyBoard:
 
-                    if (this.MessageId != null)
-                    {
-                        m = await this.Device.Edit(this.MessageId.Value, this.Title, (InlineKeyboardMarkup)form);
-                    }
+                    if (MessageId != null)
+                        m = await Device.Edit(MessageId.Value, Title, (InlineKeyboardMarkup)form);
                     else
-                    {
-                        m = await this.Device.Send(this.Title, (InlineKeyboardMarkup)form, disableNotification: true, parseMode: MessageParseMode, MarkdownV2AutoEscape: false);
-                    }
+                        m = await Device.Send(Title, (InlineKeyboardMarkup)form, disableNotification: true,
+                            parseMode: MessageParseMode, MarkdownV2AutoEscape: false);
 
                     break;
             }
 
-            if (m != null)
-            {
-                this.MessageId = m.MessageId;
-            }
-
-
+            if (m != null) MessageId = m.MessageId;
         }
 
         private void IntegratePagingView(ButtonForm dataForm)
         {
             //No Items 
-            if (dataForm.Rows == 0)
-            {
-                dataForm.AddButtonRow(new ButtonBase(NoItemsLabel, "$"));
-            }
+            if (dataForm.Rows == 0) dataForm.AddButtonRow(new ButtonBase(NoItemsLabel, "$"));
 
-            ButtonForm bf = new ButtonForm();
+            var bf = new ButtonForm();
 
             bf = PrepareCheckableLayout(dataForm);
 
 
-            if (this.IsNavigationBarVisible)
+            if (IsNavigationBarVisible)
             {
                 //🔍
-                ButtonRow row = new ButtonRow();
+                var row = new ButtonRow();
                 row.Add(new ButtonBase(PreviousPageLabel, "$previous$"));
-                row.Add(new ButtonBase(String.Format(Localizations.Default.Language["ButtonGrid_CurrentPage"], this.CurrentPageIndex + 1, this.PageCount), "$site$"));
+                row.Add(new ButtonBase(
+                    string.Format(Default.Language["ButtonGrid_CurrentPage"], CurrentPageIndex + 1, PageCount),
+                    "$site$"));
                 row.Add(new ButtonBase(NextPageLabel, "$next$"));
 
 
@@ -652,31 +710,24 @@ namespace TelegramBotBase.Controls.Hybrid
         private ButtonForm PrepareCheckableLayout(ButtonForm dataForm)
         {
             var bf = new ButtonForm();
-            for (int i = 0; i < dataForm.Rows; i++)
+            for (var i = 0; i < dataForm.Rows; i++)
             {
-                int it = (this.CurrentPageIndex * (this.MaximumRow - LayoutRows)) + i;
+                var it = CurrentPageIndex * (MaximumRow - LayoutRows) + i;
 
                 //if (it > dataForm.Rows - 1)
                 //    break;
 
                 var r = dataForm[i];
 
-                String s = CheckedRows.Contains(it) ? this.CheckedIconLabel : this.UncheckedIconLabel;
+                var s = CheckedRows.Contains(it) ? CheckedIconLabel : UncheckedIconLabel;
 
                 //On reply keyboards we need a unique text.
-                if (this.KeyboardType == eKeyboardType.ReplyKeyboard)
-                {
-                    s = $"{it + 1}. " + s;
-                }
+                if (KeyboardType == eKeyboardType.ReplyKeyboard) s = $"{it + 1}. " + s;
 
                 if (CheckedRows.Contains(it))
-                {
-                    r.Insert(0, new ButtonBase(s, "uncheck$" + it.ToString()));
-                }
+                    r.Insert(0, new ButtonBase(s, "uncheck$" + it));
                 else
-                {
-                    r.Insert(0, new ButtonBase(s, "check$" + it.ToString()));
-                }
+                    r.Insert(0, new ButtonBase(s, "check$" + it));
 
                 bf.AddButtonRow(r);
             }
@@ -684,191 +735,43 @@ namespace TelegramBotBase.Controls.Hybrid
             return bf;
         }
 
-        public bool PagingNecessary
-        {
-            get
-            {
-                if (this.KeyboardType == eKeyboardType.InlineKeyBoard && TotalRows > Constants.Telegram.MaxInlineKeyBoardRows)
-                {
-                    return true;
-                }
-
-                if (this.KeyboardType == eKeyboardType.ReplyKeyboard && TotalRows > Constants.Telegram.MaxReplyKeyboardRows)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        public bool IsNavigationBarVisible
-        {
-            get
-            {
-                if (this.NavigationBarVisibility == eNavigationBarVisibility.always | (this.NavigationBarVisibility == eNavigationBarVisibility.auto && PagingNecessary))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Returns the maximum number of rows
-        /// </summary>
-        public int MaximumRow
-        {
-            get
-            {
-                switch (this.KeyboardType)
-                {
-                    case eKeyboardType.InlineKeyBoard:
-                        return Constants.Telegram.MaxInlineKeyBoardRows;
-
-                    case eKeyboardType.ReplyKeyboard:
-                        return Constants.Telegram.MaxReplyKeyboardRows;
-
-                    default:
-                        return 0;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of all rows (layout + navigation + content);
-        /// </summary>
-        public int TotalRows
-        {
-            get
-            {
-                return this.LayoutRows + DataSource.RowCount;
-            }
-        }
-
-
-        /// <summary>
-        /// Contains the Number of Rows which are used by the layout.
-        /// </summary>
-        private int LayoutRows
-        {
-            get
-            {
-                int layoutRows = 0;
-
-                if (this.NavigationBarVisibility == eNavigationBarVisibility.always | this.NavigationBarVisibility == eNavigationBarVisibility.auto)
-                    layoutRows += 2;
-
-                if (this.HeadLayoutButtonRow != null && this.HeadLayoutButtonRow.Count > 0)
-                    layoutRows++;
-
-                if (this.SubHeadLayoutButtonRow != null && this.SubHeadLayoutButtonRow.Count > 0)
-                    layoutRows++;
-
-                return layoutRows;
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of item rows per page.
-        /// </summary>
-        public int ItemRowsPerPage
-        {
-            get
-            {
-                return this.MaximumRow - this.LayoutRows;
-            }
-        }
-
-        public int PageCount
-        {
-            get
-            {
-                if (DataSource.RowCount == 0)
-                    return 1;
-
-                //var bf = this.DataSource.PickAllItems(this.EnableSearch ? this.SearchQuery : null);
-
-                var max = this.DataSource.RowCount;
-
-                //if (this.EnableSearch && this.SearchQuery != null && this.SearchQuery != "")
-                //{
-                //    bf = bf.FilterDuplicate(this.SearchQuery);
-                //}
-
-                if (max == 0)
-                    return 1;
-
-                return (int)Math.Ceiling((decimal)((decimal)max / (decimal)ItemRowsPerPage));
-            }
-        }
-
         public override async Task Hidden(bool FormClose)
         {
             //Prepare for opening Modal, and comming back
-            if (!FormClose)
-            {
-                this.Updated();
-            }
-        }
-
-        public List<ButtonBase> CheckedItems
-        {
-            get
-            {
-                List<ButtonBase> lst = new List<ButtonBase>();
-
-                foreach (var c in CheckedRows)
-                {
-                    lst.Add(this.ButtonsForm[c][0]);
-                }
-
-                return lst;
-            }
+            if (!FormClose) Updated();
         }
 
 
         /// <summary>
-        /// Tells the control that it has been updated.
+        ///     Tells the control that it has been updated.
         /// </summary>
         public void Updated()
         {
-            this.RenderNecessary = true;
+            RenderNecessary = true;
         }
 
-        public async override Task Cleanup()
+        public override async Task Cleanup()
         {
-            if (this.MessageId == null)
+            if (MessageId == null)
                 return;
 
-            switch (this.KeyboardType)
+            switch (KeyboardType)
             {
                 case eKeyboardType.InlineKeyBoard:
 
-                    await this.Device.DeleteMessage(this.MessageId.Value);
+                    await Device.DeleteMessage(MessageId.Value);
 
-                    this.MessageId = null;
+                    MessageId = null;
 
                     break;
                 case eKeyboardType.ReplyKeyboard:
 
-                    if (this.HideKeyboardOnCleanup)
-                    {
-                        await this.Device.HideReplyKeyboard();
-                    }
+                    if (HideKeyboardOnCleanup) await Device.HideReplyKeyboard();
 
-                    this.MessageId = null;
+                    MessageId = null;
 
                     break;
             }
-
-
-
-
         }
-
     }
-
-
 }

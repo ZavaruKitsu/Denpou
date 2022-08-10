@@ -54,12 +54,8 @@ public class FormBaseMessageLoop : IMessageLoopFactory
 
         //Is Attachment ? (Photo, Audio, Video, Contact, Location, Document) (Ignore Callback Queries)
         if (update.Type == UpdateType.Message)
-            if (mr.MessageType == MessageType.Contact
-                || mr.MessageType == MessageType.Document
-                || mr.MessageType == MessageType.Location
-                || mr.MessageType == MessageType.Photo
-                || mr.MessageType == MessageType.Video
-                || mr.MessageType == MessageType.Audio)
+            if (mr.MessageType is MessageType.Contact or MessageType.Document or MessageType.Location
+                or MessageType.Photo or MessageType.Video or MessageType.Audio)
                 await activeForm.SentData(new DataResult(ur));
 
         //Action Event
@@ -95,7 +91,7 @@ public class FormBaseMessageLoop : IMessageLoopFactory
     }
 
     /// <summary>
-    ///     Will be called if no form handeled this call
+    ///     Will be called if no form handled this call
     /// </summary>
     public event EventHandler<UnhandledCallEventArgs> UnhandledCall
     {

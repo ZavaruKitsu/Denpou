@@ -9,6 +9,7 @@ using Denpou.Base;
 using Denpou.Interfaces;
 using Denpou.Sessions;
 using Denpou.Tools;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Denpou;
 
@@ -67,8 +68,7 @@ public class SessionBase
     /// <returns></returns>
     public async Task<DeviceSession> StartSession(long deviceId)
     {
-        var start = BotBase.StartFormFactory.CreateForm();
-        //T start = typeof(T).GetConstructor(new Type[] { }).Invoke(new object[] { }) as T;
+        var start = (FormBase)ActivatorUtilities.CreateInstance(BotBase.ServiceProvider, BotBase.StartFormType);
 
         start.Client = Client;
 

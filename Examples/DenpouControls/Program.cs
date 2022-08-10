@@ -14,13 +14,11 @@ internal class Program
     {
         var apiKey = Environment.GetEnvironmentVariable("API_KEY") ?? throw new Exception("API_KEY is not set");
 
-        var bb = BotBaseBuilder
+        var bot = BotBaseBuilder
             .Create()
-            .WithApiKey(apiKey)
-            .DefaultMessageLoop()
-            .WithStartForm<Start>()
-            .NoProxy()
-            .CustomCommands(a =>
+            .SetApiKey(apiKey)
+            .SetStartForm<Start>()
+            .SetCommands(a =>
             {
                 a.Start("Starts the bot");
                 a.Help("Should show you some help");
@@ -29,12 +27,10 @@ internal class Program
                 a.Add("form2", "Opens test form 2");
                 a.Add("params", "Returns all send parameters as a message.");
             })
-            .NoSerialization()
-            .UseEnglish()
             .Build();
 
 
-        bb.BotCommand += async (s, en) =>
+        bot.BotCommand += async (s, en) =>
         {
             switch (en.Command)
             {
@@ -73,21 +69,21 @@ internal class Program
             }
         };
 
-        await bb.UploadBotCommands();
+        await bot.UploadBotCommands();
 
-        bb.SetSetting(ESettings.LogAllMessages, true);
+        bot.SetSetting(ESettings.LogAllMessages, true);
 
-        bb.Message += (s, en) =>
+        bot.Message += (s, en) =>
         {
             Console.WriteLine($"{en.DeviceId} {en.Message.MessageText} {en.Message.RawData ?? ""}");
         };
 
-        await bb.Start();
+        await bot.Start();
 
         Console.WriteLine("Telegram Bot started...");
         Console.WriteLine("Press q to quit application.");
 
         Console.ReadLine();
-        await bb.Stop();
+        await bot.Stop();
     }
 }

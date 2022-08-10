@@ -22,7 +22,8 @@ namespace SystemCommandsBot
             }
 
             var bot = BotBaseBuilder.Create()
-                .QuickStart(BotConfig.ApiKey, typeof(StartForm))
+                .SetApiKey(BotConfig.ApiKey)
+                .SetStartForm<StartForm>()
                 .Build();
 
             await bot.Start();

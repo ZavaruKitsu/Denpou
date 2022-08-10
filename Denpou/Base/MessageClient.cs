@@ -27,29 +27,16 @@ public class MessageClient
 
     private CancellationTokenSource _cancellationTokenSource;
 
-
-    public MessageClient(string apiKey)
-    {
-        ApiKey = apiKey;
-        TelegramClient = new TelegramBotClient(apiKey);
-
-        Prepare();
-    }
-
     public MessageClient(string apiKey, HttpClient proxy)
     {
-        ApiKey = apiKey;
         TelegramClient = new TelegramBotClient(apiKey, proxy);
-
 
         Prepare();
     }
 
 
-    public MessageClient(string apiKey, Uri proxyUrl, NetworkCredential credential = null)
+    public MessageClient(string apiKey, Uri proxyUrl, ICredentials credential = null)
     {
-        ApiKey = apiKey;
-
         var proxy = new WebProxy(proxyUrl)
         {
             Credentials = credential
@@ -72,8 +59,6 @@ public class MessageClient
     /// <param name="proxyPort">i.e. 10000</param>
     public MessageClient(string apiKey, string proxyHost, int proxyPort)
     {
-        ApiKey = apiKey;
-
         var proxy = new WebProxy(proxyHost, proxyPort);
 
         var httpClient = new HttpClient(
@@ -86,32 +71,27 @@ public class MessageClient
     }
 
 
-    public MessageClient(string apiKey, TelegramBotClient client)
+    public MessageClient(ITelegramBotClient client)
     {
-        ApiKey = apiKey;
         TelegramClient = client;
 
         Prepare();
     }
-
-
-    public string ApiKey { get; set; }
 
     public ITelegramBotClient TelegramClient { get; set; }
 
     private EventHandlerList Events { get; } = new();
 
 
-    public void Prepare()
-    {
-        TelegramClient.Timeout = new TimeSpan(0, 0, 30);
-    }
-
-
-    public void StartReceiving()
+    private void Prepare()
     {
         _cancellationTokenSource = new CancellationTokenSource();
 
+        TelegramClient.Timeout = new TimeSpan(0, 0, 30);
+    }
+
+    public void StartReceiving()
+    {
         var receiverOptions = new ReceiverOptions();
 
         TelegramClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions,
@@ -124,11 +104,10 @@ public class MessageClient
     }
 
 
-    public Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update,
+        CancellationToken cancellationToken)
     {
-        OnMessageLoop(new UpdateResult(update, null));
-
-        return Task.CompletedTask;
+        await OnMessageLoop(new UpdateResult(update, null));
     }
 
     public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception,
@@ -138,6 +117,7 @@ public class MessageClient
             Console.WriteLine($"Telegram API Error:\n[{exApi.ErrorCode}]\n{exApi.Message}");
         else
             Console.WriteLine(exception.ToString());
+
         return Task.CompletedTask;
     }
 
@@ -154,11 +134,11 @@ public class MessageClient
     /// <summary>
     ///     This will set your bot commands to the given list.
     /// </summary>
-    /// <param name="botcommands"></param>
+    /// <param name="botCommands"></param>
     /// <returns></returns>
-    public async Task SetBotCommands(List<BotCommand> botcommands)
+    public async Task SetBotCommands(IEnumerable<BotCommand> botCommands)
     {
-        await TelegramClient.SetMyCommandsAsync(botcommands);
+        await TelegramClient.SetMyCommandsAsync(botCommands);
     }
 
 
@@ -170,9 +150,9 @@ public class MessageClient
         remove => Events.RemoveHandler(EvOnMessageLoop, value);
     }
 
-    public void OnMessageLoop(UpdateResult update)
+    public async Task OnMessageLoop(UpdateResult update)
     {
-        (Events[EvOnMessageLoop] as Async.AsyncEventHandler<UpdateResult>)?.Invoke(this, update);
+        await (Events[EvOnMessageLoop] as Async.AsyncEventHandler<UpdateResult>)?.Invoke(this, update)!;
     }
 
     #endregion

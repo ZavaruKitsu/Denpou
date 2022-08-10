@@ -16,9 +16,9 @@ namespace Denpou;
 /// <summary>
 ///     Bot base class for full Device/Context and Message handling
 /// </summary>
-public class BotBase
+public sealed class BotBase
 {
-    public BotBase()
+    internal BotBase()
     {
         SystemSettings = new Dictionary<ESettings, uint>();
 
@@ -36,12 +36,7 @@ public class BotBase
         };
     }
 
-    public MessageClient Client { get; set; }
-
-    /// <summary>
-    ///     Your TelegramBot APIKey
-    /// </summary>
-    public string ApiKey { get; set; } = "";
+    public MessageClient Client { get; init; }
 
     /// <summary>
     ///     List of all running/active sessions
@@ -49,7 +44,7 @@ public class BotBase
     public SessionBase Sessions { get; set; }
 
     /// <summary>
-    ///     Contains System commands which will be available at everytime and didnt get passed to forms, i.e. /start
+    ///     Contains System commands which will be available at everytime and didn't get passed to forms, i.e. /start
     /// </summary>
     public List<BotCommand> BotCommands { get; set; }
 
@@ -57,12 +52,7 @@ public class BotBase
     /// <summary>
     ///     Enable the SessionState (you need to implement on call forms the IStateForm interface)
     /// </summary>
-    public IStateMachine StateMachine { get; set; }
-
-    /// <summary>
-    ///     Offers functionality to manage the creation process of the start form.
-    /// </summary>
-    public IStartFormFactory StartFormFactory { get; set; }
+    public IStateMachine? StateMachine { get; set; }
 
     /// <summary>
     ///     Contains the message loop factory, which cares about "message-management."
@@ -74,17 +64,23 @@ public class BotBase
     /// </summary>
     public Dictionary<ESettings, uint> SystemSettings { get; }
 
+    /// <summary>
+    ///     The service provider used in form creating
+    /// </summary>
+    public IServiceProvider ServiceProvider { get; init; }
+
+    /// <summary>
+    ///     The start form type
+    /// </summary>
+    public Type StartFormType { get; init; }
+
 
     /// <summary>
     ///     Start your Bot
     /// </summary>
     public async Task Start()
     {
-        if (Client == null)
-            return;
-
         Client.MessageLoop += Client_MessageLoop;
-
 
         if (StateMachine != null) await Sessions.LoadSessionStates(StateMachine);
 

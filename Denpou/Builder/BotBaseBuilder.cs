@@ -1,345 +1,112 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.ComponentModel.Design;
 using Denpou.Base;
-using Denpou.Builder.Interfaces;
-using Denpou.Commands;
-using Denpou.Factories;
 using Denpou.Factories.MessageLoops;
 using Denpou.Interfaces;
-using Denpou.Localizations;
-using Denpou.States;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace Denpou.Builder;
 
-public class BotBaseBuilder : IApiKeySelectionStage, IMessageLoopSelectionStage, IStartFormSelectionStage,
-    IBuildingStage, INetworkingSelectionStage, IBotCommandsStage, ISessionSerializationStage,
-    ILanguageSelectionStage
+public sealed class BotBaseBuilder
 {
-    private readonly List<BotCommand> _botcommands = new();
-    private string _apiKey;
-
-    private MessageClient _client;
-
-    private IStartFormFactory _factory;
-
-    private IMessageLoopFactory _messageloopfactory;
-
-    private IStateMachine _statemachine;
+    private readonly List<BotCommand> _botCommands = new();
+    private string? _apiKey;
+    private ITelegramBotClient? _botClient;
+    private IMessageLoopFactory _messageLoopFactory;
+    private IServiceProvider? _serviceProvider;
+    private Type? _startForm;
+    private IStateMachine? _stateMachine;
 
     private BotBaseBuilder()
     {
+        _messageLoopFactory = new FormBaseMessageLoop();
     }
-
 
     public BotBase Build()
     {
-        var bb = new BotBase
+        if (_apiKey is null && _botClient is null)
+            throw new ArgumentException("Either API key or Telegram bot must be set");
+
+        if (_apiKey is not null && _botClient is null) _botClient = new TelegramBotClient(_apiKey);
+
+        if (_startForm is null) throw new ArgumentNullException(nameof(_startForm), "Start form must be set");
+
+        var client = new MessageClient(_botClient!);
+
+        var bot = new BotBase
         {
-            ApiKey = _apiKey,
-            StartFormFactory = _factory,
-            Client = _client
+            Client = client,
+            ServiceProvider = _serviceProvider ?? new ServiceContainer(),
+            StartFormType = _startForm
         };
 
-        bb.Sessions.Client = bb.Client;
+        bot.Sessions.Client = bot.Client;
+        bot.BotCommands = _botCommands;
+        bot.StateMachine = _stateMachine;
+        bot.MessageLoopFactory = _messageLoopFactory;
+        bot.MessageLoopFactory.UnhandledCall += bot.MessageLoopFactory_UnhandledCall;
 
-        bb.BotCommands = _botcommands;
-
-        bb.StateMachine = _statemachine;
-
-        bb.MessageLoopFactory = _messageloopfactory;
-
-        bb.MessageLoopFactory.UnhandledCall += bb.MessageLoopFactory_UnhandledCall;
-
-        return bb;
+        return bot;
     }
 
-    public static IApiKeySelectionStage Create()
+    /// <summary>
+    ///     Creates <see cref="BotBaseBuilder" /> with default settings
+    /// </summary>
+    /// <returns></returns>
+    public static BotBaseBuilder Create()
     {
         return new BotBaseBuilder();
     }
 
-    #region "Step 1 (Basic Stuff)"
-
-    public IMessageLoopSelectionStage WithApiKey(string apiKey)
+    public BotBaseBuilder SetApiKey(string apiKey)
     {
-        _apiKey = apiKey;
+        _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
         return this;
     }
 
-
-    public IBuildingStage QuickStart(string apiKey, Type startForm)
+    public BotBaseBuilder SetMessageLoop(IMessageLoopFactory messageLoopFactory)
     {
-        _apiKey = apiKey;
-        _factory = new DefaultStartFormFactory(startForm);
-
-        DefaultMessageLoop();
-
-        NoProxy();
-
-        OnlyStart();
-
-        NoSerialization();
-
-        DefaultLanguage();
-
+        _messageLoopFactory = messageLoopFactory;
         return this;
     }
 
-
-    public IBuildingStage QuickStart<T>(string apiKey)
-        where T : FormBase
+    public BotBaseBuilder SetBotClient(TelegramBotClient? client)
     {
-        _apiKey = apiKey;
-        _factory = new DefaultStartFormFactory(typeof(T));
-
-        DefaultMessageLoop();
-
-        NoProxy();
-
-        OnlyStart();
-
-        NoSerialization();
-
-        DefaultLanguage();
-
+        _botClient = client;
         return this;
     }
 
-    public IBuildingStage QuickStart(string apiKey, IStartFormFactory startFormFactory)
+    public BotBaseBuilder SetCommands(Action<List<BotCommand>> action)
     {
-        _apiKey = apiKey;
-        _factory = startFormFactory;
-
-        DefaultMessageLoop();
-
-        NoProxy();
-
-        OnlyStart();
-
-        NoSerialization();
-
-        DefaultLanguage();
-
+        action.Invoke(_botCommands);
         return this;
     }
 
-    #endregion
-
-
-    #region "Step 2 (Message Loop)"
-
-    public IStartFormSelectionStage DefaultMessageLoop()
+    public BotBaseBuilder SetSerializer(IStateMachine? machine)
     {
-        _messageloopfactory = new FormBaseMessageLoop();
-
+        _stateMachine = machine;
         return this;
     }
 
-    public IStartFormSelectionStage CustomMessageLoop(IMessageLoopFactory messageLoopClass)
+    public BotBaseBuilder SetStartForm(Type type)
     {
-        _messageloopfactory = messageLoopClass;
+        if (!type.IsSubclassOf(typeof(FormBase)))
+            throw new ArgumentException("Start form must be a subclass of 'FormBase'", nameof(type));
 
+        _startForm = type;
         return this;
     }
 
-    public IStartFormSelectionStage CustomMessageLoop<T>()
-        where T : class, new()
+    public BotBaseBuilder SetStartForm<T>() where T : FormBase
     {
-        _messageloopfactory =
-            typeof(T).GetConstructor(new Type[] { })?.Invoke(new object[] { }) as IMessageLoopFactory;
-
-        return this;
+        return SetStartForm(typeof(T));
     }
 
-    #endregion
-
-
-    #region "Step 3 (Start Form/Factory)"
-
-    public INetworkingSelectionStage WithStartForm(Type startFormClass)
+    public BotBaseBuilder SetServiceProvider(IServiceProvider serviceProvider)
     {
-        _factory = new DefaultStartFormFactory(startFormClass);
+        _serviceProvider = serviceProvider;
         return this;
     }
-
-    public INetworkingSelectionStage WithStartForm<T>()
-        where T : FormBase, new()
-    {
-        _factory = new DefaultStartFormFactory(typeof(T));
-        return this;
-    }
-
-    public INetworkingSelectionStage WithStartFormFactory(IStartFormFactory factory)
-    {
-        _factory = factory;
-        return this;
-    }
-
-    #endregion
-
-
-    #region "Step 4 (Network Settings)"
-
-    public IBotCommandsStage WithProxy(string proxyAddress)
-    {
-        var url = new Uri(proxyAddress);
-        _client = new MessageClient(_apiKey, url)
-        {
-            TelegramClient =
-            {
-                Timeout = new TimeSpan(0, 1, 0)
-            }
-        };
-        return this;
-    }
-
-
-    public IBotCommandsStage NoProxy()
-    {
-        _client = new MessageClient(_apiKey)
-        {
-            TelegramClient =
-            {
-                Timeout = new TimeSpan(0, 1, 0)
-            }
-        };
-        return this;
-    }
-
-
-    public IBotCommandsStage WithBotClient(TelegramBotClient tgclient)
-    {
-        _client = new MessageClient(_apiKey, tgclient)
-        {
-            TelegramClient =
-            {
-                Timeout = new TimeSpan(0, 1, 0)
-            }
-        };
-        return this;
-    }
-
-
-    public IBotCommandsStage WithHostAndPort(string proxyHost, int proxyPort)
-    {
-        _client = new MessageClient(_apiKey, proxyHost, proxyPort)
-        {
-            TelegramClient =
-            {
-                Timeout = new TimeSpan(0, 1, 0)
-            }
-        };
-        return this;
-    }
-
-    public IBotCommandsStage WithHttpClient(HttpClient tgclient)
-    {
-        _client = new MessageClient(_apiKey, tgclient)
-        {
-            TelegramClient =
-            {
-                Timeout = new TimeSpan(0, 1, 0)
-            }
-        };
-        return this;
-    }
-
-    #endregion
-
-
-    #region "Step 5 (Bot Commands)"
-
-    public ISessionSerializationStage NoCommands()
-    {
-        return this;
-    }
-
-    public ISessionSerializationStage OnlyStart()
-    {
-        _botcommands.Start("Starts the bot");
-
-        return this;
-    }
-
-    public ISessionSerializationStage DefaultCommands()
-    {
-        _botcommands.Start("Starts the bot");
-        _botcommands.Help("Should show you some help");
-        _botcommands.Settings("Should show you some settings");
-        return this;
-    }
-
-    public ISessionSerializationStage CustomCommands(Action<List<BotCommand>> action)
-    {
-        action?.Invoke(_botcommands);
-        return this;
-    }
-
-    #endregion
-
-
-    #region "Step 6 (Serialization)"
-
-    public ILanguageSelectionStage NoSerialization()
-    {
-        return this;
-    }
-
-    public ILanguageSelectionStage UseSerialization(IStateMachine machine)
-    {
-        _statemachine = machine;
-        return this;
-    }
-
-
-    public ILanguageSelectionStage UseJson(string path)
-    {
-        _statemachine = new JsonStateMachine(path);
-        return this;
-    }
-
-    public ILanguageSelectionStage UseSimpleJson(string path)
-    {
-        _statemachine = new SimpleJsonStateMachine(path);
-        return this;
-    }
-
-    public ILanguageSelectionStage UseXml(string path)
-    {
-        _statemachine = new XmlStateMachine(path);
-        return this;
-    }
-
-    #endregion
-
-
-    #region "Step 7 (Language)"
-
-    public IBuildingStage DefaultLanguage()
-    {
-        return this;
-    }
-
-    public IBuildingStage UseEnglish()
-    {
-        Default.Language = new English();
-        return this;
-    }
-
-    public IBuildingStage UseGerman()
-    {
-        Default.Language = new German();
-        return this;
-    }
-
-    public IBuildingStage Custom(Localization language)
-    {
-        Default.Language = language;
-        return this;
-    }
-
-    #endregion
 }

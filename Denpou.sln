@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Denpou.Extensions.Images", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DenpouControls", "Examples\DenpouControls\DenpouControls.csproj", "{BE1B1FBA-3D6A-4B65-8FCA-78B999B17AB7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCoreBot", "Examples\EFCoreBot\EFCoreBot.csproj", "{0A95CD53-CA70-467F-B0CA-6BE352DAD07D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{BE1B1FBA-3D6A-4B65-8FCA-78B999B17AB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1B1FBA-3D6A-4B65-8FCA-78B999B17AB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE1B1FBA-3D6A-4B65-8FCA-78B999B17AB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A95CD53-CA70-467F-B0CA-6BE352DAD07D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A95CD53-CA70-467F-B0CA-6BE352DAD07D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A95CD53-CA70-467F-B0CA-6BE352DAD07D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A95CD53-CA70-467F-B0CA-6BE352DAD07D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{FC484952-3060-4F87-9809-4CD66D6961C0} = {BFA71E3F-31C0-4FC1-A320-4DCF704768C5}
 		{E804B9E5-7ACC-49D3-9253-806766C1D9A5} = {BFA71E3F-31C0-4FC1-A320-4DCF704768C5}
 		{BE1B1FBA-3D6A-4B65-8FCA-78B999B17AB7} = {BFA71E3F-31C0-4FC1-A320-4DCF704768C5}
+		{0A95CD53-CA70-467F-B0CA-6BE352DAD07D} = {BFA71E3F-31C0-4FC1-A320-4DCF704768C5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {59CB40E1-9FA7-4867-A56F-4F418286F057}

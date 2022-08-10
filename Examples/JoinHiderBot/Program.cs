@@ -12,7 +12,8 @@ namespace JoinHiderBot
             var apiKey = Environment.GetEnvironmentVariable("API_KEY") ?? throw new Exception("API_KEY is not set");
 
             var bot = BotBaseBuilder.Create()
-                .QuickStart(apiKey, typeof(Start))
+                .SetApiKey(apiKey)
+                .SetStartForm<Start>()
                 .Build();
 
             await bot.Start();
